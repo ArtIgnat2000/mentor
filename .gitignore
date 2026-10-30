@@ -3,3 +3,6 @@ nastavnik_pack.zip
 __pycache__/
 *.pyc
 .DS_Store
+
+# закрытый раздел «Родителям»: исходник в репозиторий не попадает
+secret_roditeli.md
