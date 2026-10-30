@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#16302b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Наставник">
+<title>Наставник · карманный свод</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+  :root{--bg:#f4f1ea;--card:#fffdf8;--ink:#1c2321;--muted:#6b7570;--accent:#16302b;
+        --accent2:#2f6b5b;--line:#ddd6c8;--hot:#b4472e;--gold:#b58a2b;--r:16px;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:17px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+       padding-bottom:calc(78px + env(safe-area-inset-bottom));}
+  header{position:sticky;top:0;z-index:20;background:var(--accent);color:#f4f1ea;
+         padding:10px 14px;box-shadow:0 2px 10px rgba(0,0,0,.18);}
+  .hd-title{font-size:15px;font-weight:650;letter-spacing:.02em;}
+  .hd-sub{font-size:11.5px;opacity:.62;margin-top:1px;}
+  .search{margin-top:9px;position:relative;display:none;}
+  html.js .search{display:block;}
+  .search input{width:100%;padding:11px 38px 11px 13px;border-radius:11px;border:none;font-size:16px;
+                background:#0e211d;color:#f4f1ea;outline:none;}
+  .search input::placeholder{color:#8fa39c;}
+  .search .x{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;
+             color:#8fa39c;font-size:20px;padding:6px 10px;cursor:pointer;display:none;}
+  main{padding:14px 12px 30px;max-width:760px;margin:0 auto;}
+
+  /* ---- навигация на чистом CSS ---- */
+  .pane{display:none;scroll-margin-top:84px;}
+  .pane:target{display:block;}
+  #home{display:block;}
+  body:has(#r :target) #home, body:has(#p :target) #home,
+  body:has(#pl :target) #home, body:has(#k :target) #home,
+  body:has(#r:target) #home, body:has(#p:target) #home,
+  body:has(#pl:target) #home, body:has(#k:target) #home{display:none;}
+  body:has(#r :target) #r, body:has(#r:target) #r,
+  body:has(#p :target) #p, body:has(#p:target) #p,
+  body:has(#pl :target) #pl, body:has(#pl:target) #pl,
+  body:has(#k :target) #k, body:has(#k:target) #k{display:block;}
+  #home:target{display:block;}
+
+  .doc-title{font-size:22px;margin:6px 0 12px;letter-spacing:-.01em;}
+  .lead{color:var(--muted);font-size:14.5px;margin:-4px 0 16px;}
+  .sect-h{font-size:14px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);
+          margin:24px 0 10px;font-weight:700;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 15px;
+        margin:0 0 10px;box-shadow:0 1px 2px rgba(28,35,33,.04);}
+  .card--intro{background:#fffefa;border-color:#cdbf9f;}
+  details.card{padding:0;overflow:hidden;scroll-margin-top:78px;}
+  details.card summary{list-style:none;cursor:pointer;padding:14px 44px 14px 15px;position:relative;
+                       font-weight:650;font-size:16px;line-height:1.35;display:block;}
+  details.card summary::-webkit-details-marker{display:none;}
+  .chev{position:absolute;right:15px;top:50%;width:9px;height:9px;margin-top:-6px;
+        border-right:2px solid var(--accent2);border-bottom:2px solid var(--accent2);
+        transform:rotate(45deg);transition:transform .18s ease;}
+  details[open] .chev{transform:rotate(-135deg);margin-top:-3px;}
+  details[open] summary{background:#f7f3e9;border-bottom:1px solid var(--line);}
+  details.card:target{box-shadow:0 0 0 3px rgba(181,138,43,.55);}
+  .fold-body{padding:12px 15px 14px;}
+  .fold-body>:first-child{margin-top:0;}
+  .fold-body>:last-child{margin-bottom:0;}
+  h2{font-size:18px;margin:0 0 8px;}
+  h3{font-size:16px;margin:16px 0 6px;color:var(--accent2);}
+  p{margin:0 0 10px;}
+  ul,ol{margin:0 0 10px;padding-left:22px;}
+  li{margin:0 0 5px;}
+  .big-list li{margin-bottom:9px;}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;margin:6px 0 12px;}
+  th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top;}
+  th{background:#f2eee2;font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);}
+  blockquote{margin:10px 0;padding:10px 12px;border-left:3px solid var(--gold);background:#faf6ea;
+             border-radius:0 8px 8px 0;font-size:15.5px;}
+  code{background:#eee8db;padding:1px 5px;border-radius:5px;font-size:14px;}
+  a{color:var(--accent2);}
+  hr{border:none;border-top:1px solid var(--line);margin:16px 0;}
+
+  .toc{background:#efeade;border:1px solid var(--line);border-radius:14px;padding:10px 11px;margin:0 0 12px;}
+  .toc-h{display:block;font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;
+         color:var(--muted);font-weight:700;margin-bottom:7px;}
+  .chip{display:inline-block;background:#fffdf8;border:1px solid var(--line);border-radius:20px;
+        padding:6px 11px;margin:0 5px 5px 0;font-size:13.5px;color:var(--ink);text-decoration:none;}
+  .chip:active{background:#e8e1d0;}
+
+  .quick{display:grid;grid-template-columns:1fr;gap:8px;}
+  .q{display:block;text-decoration:none;font-size:15.5px;font-weight:600;color:var(--ink);
+     background:var(--card);border:1px solid var(--line);border-radius:13px;padding:14px;line-height:1.35;}
+  .q:active{background:#f0ebdd;}
+  .q--hot{border-color:#e0b6a8;background:#fdf2ee;color:#7d2c1a;}
+  .flow{display:grid;gap:8px;}
+  .flow-item{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent2);
+             border-radius:10px;padding:10px 12px;font-size:15px;}
+  .flow-item b{display:block;font-size:12px;letter-spacing:.09em;color:var(--accent2);}
+  .flow-item span{color:var(--muted);}
+  .warn{margin-top:16px;background:#fdf2ee;border:1px solid #e0b6a8;color:#7d2c1a;
+        border-radius:13px;padding:12px 14px;font-size:15px;}
+  .totop{margin:18px 0 4px;text-align:center;font-size:14px;}
+
+  nav#nav{position:fixed;bottom:0;left:0;right:0;z-index:30;display:flex;background:#10312c;
+          padding:6px 4px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -2px 12px rgba(0,0,0,.22);}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;
+       color:#9fb4ad;font-size:10.5px;font-weight:600;padding:6px 2px 4px;border-radius:10px;line-height:1.15;
+       text-align:center;}
+  .tab-ico{font-size:19px;line-height:1;}
+  .tab:active{background:rgba(255,255,255,.10);}
+  /* «Главное» активно по умолчанию */
+  .tab[href="#home"]{color:#fff;background:rgba(255,255,255,.09);}
+  /* активная вкладка текущего раздела */
+  body:has(#r :target) .tab[href="#r"], body:has(#r:target) .tab[href="#r"],
+  body:has(#p :target) .tab[href="#p"], body:has(#p:target) .tab[href="#p"],
+  body:has(#pl :target) .tab[href="#pl"], body:has(#pl:target) .tab[href="#pl"],
+  body:has(#k :target) .tab[href="#k"], body:has(#k:target) .tab[href="#k"],
+  body:has(#home:target) .tab[href="#home"]{color:#fff;background:rgba(255,255,255,.09);}
+  /* снимаем подсветку «Главное», когда открыт другой раздел */
+  body:has(#r :target) .tab[href="#home"], body:has(#r:target) .tab[href="#home"],
+  body:has(#p :target) .tab[href="#home"], body:has(#p:target) .tab[href="#home"],
+  body:has(#pl :target) .tab[href="#home"], body:has(#pl:target) .tab[href="#home"],
+  body:has(#k :target) .tab[href="#home"], body:has(#k:target) .tab[href="#home"]{color:#9fb4ad;background:none;}
+
+  .print-list{display:grid;gap:8px;}
+  .pdf{display:flex;align-items:flex-start;gap:10px;text-decoration:none;color:var(--ink);
+       background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 13px;
+       font-size:15px;line-height:1.35;}
+  .pdf:active{background:#f0ebdd;}
+  .pdf-ico{font-size:16px;line-height:1.3;}
+  .pdf-t{flex:1;}
+  .pdf-note{color:var(--muted);font-size:13.5px;margin:8px 0 0;}
+
+  .nores{text-align:center;color:var(--muted);padding:30px 10px;display:none;}
+  @media (min-width:700px){.quick{grid-template-columns:1fr 1fr;}.print-list{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<a id="top"></a>
+<header>
+  <div class="hd-title">Наставник · карманный свод</div>
+  <div class="hd-sub">8 и 10 лет · ритм — пауза — поступок</div>
+  <div class="search">
+    <input id="q" type="search" placeholder="Поиск: истерика, ревность, турник…" autocomplete="off">
+    <button class="x" id="qx" aria-label="Очистить">×</button>
+  </div>
+</header>
+
+<main>
+
+<section class="pane pane--home" id="home">
+  <h1 class="doc-title">Моё главное</h1>
+  <p class="lead">Карманный свод. Работает без интернета и без JavaScript — открывается даже из «Файлов» на iPhone.</p>
+
+  <section class="card card--intro">
+    <h2>Пять правил, которые важнее остальных</h2>
+    <ol class="big-list">
+      <li>Я никогда не сравниваю братьев — ни в минус, ни в плюс.</li>
+      <li>В момент аффекта я не воспитываю: только безопасность, присутствие, ровный голос.</li>
+      <li>После срыва обязателен ремонт: вернуться, назвать, извиниться, договориться.</li>
+      <li>У каждого мальчика есть нераздельное время со мной — и оно не отменяется.</li>
+      <li>Моё слово — закон, потому что я его держу.</li>
+    </ol>
+  </section>
+
+  <h2 class="sect-h">Если прямо сейчас</h2>
+  <div class="quick">
+    <a class="q q--hot" href="#p1">😤 Истерика / вспышка старшего</a>
+    <a class="q" href="#p2">💔 «Мама любит его больше»</a>
+    <a class="q" href="#p3">⚔️ Ссора: «кто прав?»</a>
+    <a class="q" href="#p4">📢 Младший подхватил крик</a>
+    <a class="q" href="#p5">📉 «У меня не получится»</a>
+    <a class="q" href="#p6">🙅 Отказ от дела</a>
+    <a class="q" href="#p8">📚 Домашнее задание рядом</a>
+    <a class="q" href="#p10">📞 Папа позвонил: «плохой день»</a>
+    <a class="q" href="#p11">🪞 Я сам сорвался</a>
+  </div>
+
+  <h2 class="sect-h">Коротко о системе</h2>
+  <div class="flow">
+    <div class="flow-item"><b>РИТМ</b><span>порядок дня держит папа, я — свидетель и голос</span></div>
+    <div class="flow-item"><b>ПАУЗА</b><span>эмоции законны, последствия — у поступков</span></div>
+    <div class="flow-item"><b>ПОСТУПОК</b><span>«сделал сам, и это кому-то нужно»</span></div>
+  </div>
+
+  <h2 class="sect-h">Первый шаг на этой неделе</h2>
+  <ol class="big-list">
+    <li>Позвонить папе и договориться о разговоре в <b>спокойное</b> время: три результата, роли, конфиденциальность, день еженедельной сверки.</li>
+    <li>Первая встреча с мальчиками — <b>просто хорошее время</b>, без воспитания. И один разговор о роли: «наши встречи — не занятия, я вас здесь не оцениваю».</li>
+    <li>Завести журнал из трёх строк.</li>
+  </ol>
+
+  <div class="warn">
+    <b>Стоп-лист (никогда):</b> не кричать · не наказывать · не сравнивать · не обещать зря ·
+    не стыдить за чувства и за маму · не занимать место папы · не разбирать конфликт в момент аффекта ·
+    не делать за ребёнка.
+  </div>
+
+  <h2 class="sect-h">Разделы</h2>
+  <div class="quick">
+    <a class="q" href="#r">📏 Правила наставника</a>
+    <a class="q" href="#p">🧭 Протоколы ситуаций</a>
+    <a class="q" href="#pl">📅 План на 90 дней</a>
+    <a class="q" href="#k">🎯 Концепция</a>
+  </div>
+
+  <h2 class="sect-h">Печатные материалы</h2><div class="print-list"><a class="pdf" href="https://artignat2000.github.io/mentor/print/01_na_holodilnik_A4.pdf"><span class="pdf-ico" aria-hidden="true">🖨</span><span class="pdf-t">Пять правил, стоп-лист, три фразы — на холодильник</span></a><a class="pdf" href="https://artignat2000.github.io/mentor/print/02_karta_utra.pdf"><span class="pdf-ico" aria-hidden="true">🖨</span><span class="pdf-t">Карта утра — на месяц (по одной на каждого мальчика)</span></a><a class="pdf" href="https://artignat2000.github.io/mentor/print/03_karta_pauzy.pdf"><span class="pdf-ico" aria-hidden="true">🖨</span><span class="pdf-t">Карта паузы — 2 карточки на лист</span></a><a class="pdf" href="https://artignat2000.github.io/mentor/print/04_shkala_1_5.pdf"><span class="pdf-ico" aria-hidden="true">🖨</span><span class="pdf-t">Шкала 1–5 — 2 карточки на лист</span></a><a class="pdf" href="https://artignat2000.github.io/mentor/print/05_zhurnal_nastavnika.pdf"><span class="pdf-ico" aria-hidden="true">🖨</span><span class="pdf-t">Журнал наставника — на месяц встреч</span></a><a class="pdf" href="https://artignat2000.github.io/mentor/print/06_kopilka_dobryh_del.pdf"><span class="pdf-ico" aria-hidden="true">🖨</span><span class="pdf-t">Копилка добрых дел — на месяц</span></a><a class="pdf" href="https://artignat2000.github.io/mentor/print/07_proverka_ya_sbilsya.pdf"><span class="pdf-ico" aria-hidden="true">🖨</span><span class="pdf-t">7 вопросов «я не сбился» — на две недели</span></a><a class="pdf" href="https://artignat2000.github.io/mentor/print/08_pamyatka_pape.pdf"><span class="pdf-ico" aria-hidden="true">🖨</span><span class="pdf-t">Памятка папе</span></a><a class="pdf" href="https://artignat2000.github.io/mentor/print/09_pamyatka_mame.pdf"><span class="pdf-ico" aria-hidden="true">🖨</span><span class="pdf-t">Памятка маме</span></a></div><p class="pdf-note">Открываются в Safari, оттуда — «Печать» или сохранить в «Файлы». Печатать на A4, без масштабирования (100%).</p>
+  <p class="totop"><a href="#top">↑ Наверх</a></p>
+</section>
+
+<section class="pane" id="r"><h1 class="doc-title">📏 Правила</h1><nav class="toc"><span class="toc-h">Содержание</span><a class="chip" href="#r-x1">ять правил, которые важнее остальных</a><a class="chip" href="#r0">Кто я в этой системе</a><a class="chip" href="#r1">Отношения — фундамент, без которого ничего н</a><a class="chip" href="#r2">Ритм: я не хозяин режима, я его голос и его </a><a class="chip" href="#r3">Эмоции и пауза</a><a class="chip" href="#r4">Братья и ревность</a><a class="chip" href="#r5">Требование, похвала, ошибка</a><a class="chip" href="#r6">Как разговаривать</a><a class="chip" href="#r7">Формат встреч</a><a class="chip" href="#r8">Связь с папой</a><a class="chip" href="#r9">Мои личные риски: привычка требовать и оцени</a><a class="chip" href="#r10">Стоп-правила (никогда, ни при каких обстояте</a><a class="chip" href="#r11">Проверка «я сбился» — 7 вопросов себе раз в </a></nav>
+<section class="card card--intro"><p><strong>Кому:</strong> папиному товарищу — наставнику мальчиков 8 и 10 лет <strong>Зачем:</strong> чтобы в любой ситуации было заранее известно, что делать и чего не делать <strong>Как пользоваться:</strong> не читать перед каждой встречей, а держать в голове 5 главных правил (ниже) и перечитывать весь свод раз в 2 недели — вместе с разделом 10 («проверка на сбился»).</p>
+<hr></section>
+<details class="card card--fold" id="r-x1"><summary><span class="sum-t">Пять правил, которые важнее остальных</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><ol><li><strong>Я никогда не сравниваю братьев</strong> — ни в минус, ни в плюс, даже в шутку.</li><li><strong>В момент аффекта я не воспитываю</strong> — только безопасность, присутствие, ровный голос.</li><li><strong>После срыва обязателен ремонт</strong> — вернуться, назвать, извиниться, договориться. Это не «бонус», это и есть воспитание.</li><li><strong>У каждого мальчика есть нераздельное время со мной</strong>, и оно не отменяется ради удобства.</li><li><strong>Моё слово — закон, потому что я его держу.</strong> Не могу — говорю заранее.</li></ol>
+<p>Если из свода запомнится только это — работа уже пойдёт.</p>
+<hr></div></details>
+<details class="card card--fold" id="r0"><summary><span class="sum-t">Раздел 0. Кто я в этой системе</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><ul><li><strong>0.1.</strong> Я не второй папа и не учитель. Воспитание — у папы. У меня — <strong>второе мужское поле</strong>: место, где мальчик может быть слабым, ошибаться и пробовать силу без последствий для «своего места в семье».</li><li><strong>0.2.</strong> Моя работа — не учить, а <strong>быть рядом в трудные минуты</strong>. Мальчики учатся не на словах, а на том, как выглядит взрослый мужчина, когда тяжело.</li><li><strong>0.3.</strong> Я не создаю свою систему правил. Правила в семье — одни, их держит папа. Я их поддерживаю и делаю видимыми, а не изобретаю заново.</li><li><strong>0.4.</strong> Я не соревнуюсь с папой за любовь и авторитет. При детях я никогда не «лучше папы» — я на его стороне.</li><li><strong>0.5.</strong> Я не соревнуюсь с мамой. Её место в сердцах мальчиков не оспаривается мной ни словом, ни интонацией.</li><li><strong>0.6.</strong> Я не судья — ни в ссорах братьев, ни между ребёнком и родителями. Моя роль — помочь выйти из ситуации, а не вынести приговор.</li></ul>
+<hr></div></details>
+<details class="card card--fold" id="r1"><summary><span class="sum-t">Раздел 1. Отношения — фундамент, без которого ничего не работает</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><ul><li><strong>1.1.</strong> Мальчик ценен для меня не за успехи. Проверка: если бы он ничего не добился, я бы встречался с ним точно так же.</li><li><strong>1.2.</strong> <strong>Регулярность сильнее интенсивности.</strong> Две встречи по часу в неделю работают лучше одной на четыре часа раз в месяц.</li><li><strong>1.3.</strong> <strong>Конфиденциальность.</strong> Сказанное мне не пересказывается папе — кроме вопросов безопасности. Я говорю об этом прямо и детям, и папе, сразу, чтобы не было сюрпризов позже.</li><li><strong>1.4.</strong> Я держу слово. Обещал рыбалку — рыбалка состоялась. Не получается — предупреждаю заранее и заменяю, а не исчезаю.</li><li><strong>1.5.</strong> Я не исчезаю после провала. Именно после провала звоню первым.</li><li><strong>1.6.</strong> Я не приятель-ровесник. На «ты», но я взрослый: не сленгую, не сплетничаю, не обсуждаю при них других взрослых.</li></ul>
+<hr></div></details>
+<details class="card card--fold" id="r2"><summary><span class="sum-t">Раздел 2. Ритм: я не хозяин режима, я его голос и его проверка</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p>Режим дня держит папа — он рядом каждое утро. Моя задача другая: <strong>чтобы у ритма был свидетель и смысл</strong>.</p>
+<ul><li><strong>2.1.</strong> Я не устанавливаю новых требований по режиму. Я спрашиваю и радуюсь.</li><li><strong>2.2.</strong> Спрашиваю <strong>«как прошло?»</strong>, а не <strong>«сделал?»</strong>. Вопрос-проверка превращает меня в контролёра, а контролёра обманывают.</li><li><strong>2.3.</strong> Я живой пример режима: рассказываю про свой душ, зарядку, турник <strong>как факт своей жизни</strong>, а не как мораль. «Я сегодня 12 подтянулся» работает лучше десяти лекций.</li><li><strong>2.4.</strong> Я никогда не отменяю папины правила при детях и не разрешаю то, что папа запретил. Спорное — только после разговора с папой.</li><li><strong>2.5.</strong> Утро — папина зона. Если папа сам просит помочь (например, звонок-побудка в 7:15) — это его решение, а не моя инициатива.</li><li><strong>2.6.</strong> <strong>Турник — мой главный инструмент.</strong> Он даёт легальный опыт «сейчас не получается — получится через шесть недель». Это одновременно тренировка воли, переносимости неидеальности и мужской честности с собой (записываем результат, а не «сделал сколько смог»).</li></ul>
+<hr></div></details>
+<details class="card card--fold" id="r3"><summary><span class="sum-t">Раздел 3. Эмоции и пауза</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><ul><li><strong>3.1.</strong> Я никогда не говорю «не плачь», «мужчины не истерят», «хватит», «соберись». Это учит <strong>прятать</strong>, а не владеть. Подавленные эмоции возвращаются взрывами.</li><li><strong>3.2.</strong> В момент аффекта я не воспитываю. Только: безопасность, присутствие, минимум слов, ровный голос.</li><li><strong>3.3.</strong> Порядок всегда один: <strong>заметил → назвал → принял → граница → разбор позже.</strong></li><li><strong>3.4.</strong> Я реагирую на поступок, а не на чувство и не на тон. И последствия — согласованные с папой, а не выдуманные мной на месте.</li><li><strong>3.5.</strong> После вспышки — обязательный <strong>ремонт</strong>: вернуться, назвать, что произошло, извиниться, договориться на следующий раз. Без ремонта вспышка не перерабатывается, а просто забывается.</li><li><strong>3.6.</strong> Я сам служу примером паузы — вслух, при них: «Я сейчас разозлился, возьму минуту». Мальчики должны видеть технику, а не слышать о ней.</li><li><strong>3.7.</strong> Я признаю свои ошибки вслух и первым. Это не роняет авторитет — это единственное, что делает его настоящим.</li><li><strong>3.8.</strong> Я не повышаю голос как инструмент. Если повысил — это моя ошибка, и я её называю.</li><li><strong>3.9.</strong> Я не выясняю «кто начал». Мой вопрос всегда один: <strong>«как выйти из этого в следующий раз?»</strong></li></ul>
+<hr></div></details>
+<details class="card card--fold" id="r4"><summary><span class="sum-t">Раздел 4. Братья и ревность</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><ul><li><strong>4.1.</strong> Я никогда не сравниваю. Ни «будь как брат», ни «а он смог», ни «ты старше — ты должен». Сравнение усиливает ревность даже когда оно в пользу ребёнка.</li><li><strong>4.2.</strong> Я не обсуждаю одного брата с другим: ни успехи, ни слабости, ни слёзы.</li><li><strong>4.3.</strong> У каждого — <strong>своё нераздельное время</strong> со мной: минимум одна встреча 1:1 в месяц с каждым. Это не отменяется ради удобства.</li><li><strong>4.4.</strong> На встречах втроём я слежу за балансом внимания: не позволяю одному монополизировать меня и не оставляю второго в роли «просто младшего».</li><li><strong>4.5.</strong> Ревность я <strong>не осуждаю и не стыжу</strong>: «Тебе мало мамы — это понятно. Это не делает тебя плохим». Стыд за ревность делает её сильнее и скрытнее.</li><li><strong>4.6.</strong> Я не изображаю вторую маму и не подменяю её внимание. Маму я не обсуждаю и не оцениваю — вообще никогда.</li><li><strong>4.7.</strong> У старшего есть <strong>легальное первенство</strong>: взрослые поручения, право учить младшего, своё «взрослое» дело. Конкуренция рождается там, где нишу нужно отвоёвывать; там, где она уже его, воевать не за что.</li><li><strong>4.8.</strong> Я не делаю старшего «вторым взрослым» и нянькой. Забота о брате — по возрасту и по желанию, а не по обязанности.</li></ul>
+<hr></div></details>
+<details class="card card--fold" id="r5"><summary><span class="sum-t">Раздел 5. Требование, похвала, ошибка</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><ul><li><strong>5.1.</strong> Я <strong>тёплый и требовательный одновременно</strong>. Требование без тепла — насилие; тепло без требования — слабость. Не больше одного требования за встречу.</li><li><strong>5.2.</strong> Хвалю <strong>процесс</strong>: усилие, стратегию, выбор, упорство, возвращение после срыва. Не «ты такой способный» — это привязывает ценность к таланту и делает любую ошибку удавом на самооценку.</li><li><strong>5.3.</strong> Отделяю поступок от личности в обе стороны: не «ты плохой», но и не «ты гений».</li><li><strong>5.4.</strong> Даю <strong>посильно трудное, где можно проиграть</strong>: турник, длинный переход, тяжёлая задача. Ошибка — материал, а не приговор.</li><li><strong>5.5.</strong> <strong>Не спасаю</strong>: рядом — да, вместо — нет. Не решаю за него, не звоню вместо него, не дожимаю его дело своей рукой.</li><li><strong>5.6.</strong> Спрашиваю, а не вещаю: «Что ты решил?», «Как думаешь почему?» — и правда слушаю ответ, даже если он неверный.</li><li><strong>5.7.</strong> С 10-летним говорю как с будущим мужчиной, с 8-летним — как с восьмилетним. Наоборот — худший вариант.</li></ul>
+<hr></div></details>
+<details class="card card--fold" id="r6"><summary><span class="sum-t">Раздел 6. Как разговаривать</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><ul><li><strong>6.1.</strong> Главные разговоры идут <strong>плечом к плечу, а не глаза в глаза</strong>: дорога, рыбалка, костёр, машина, длинная прогулка. «Сядем, поговорим серьёзно» — худший формат для мальчиков.</li><li><strong>6.2.</strong> Не допрашиваю. Один открытый вопрос — и тишина. Тишина работает лучше второго вопроса.</li><li><strong>6.3.</strong> Не превращаю откровенность в урок. Если он рассказал — я не читаю мораль и не докладываю. Иначе во второй раз он не расскажет.</li><li><strong>6.4.</strong> Говорю коротко. Три предложения сильнее десяти минут — особенно с 8-летним.</li></ul>
+<hr></div></details>
+<details class="card card--fold" id="r7"><summary><span class="sum-t">Раздел 7. Формат встреч</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><ul><li><strong>7.1.</strong> Нейтральная территория — моё преимущество: там нет «домашних» ролей и меньше поводов для конфликта. Кафе, прогулка, квартира, вода, лес.</li><li><strong>7.2.</strong> Порядок ценности форматов: <strong>1:1</strong> (самое ценное) → <strong>двое без папы</strong> (тренировка без судьи, настоящая проверка навыка) → <strong>вчетвером с папой</strong> (проверка, что правила живут и при взрослых).</li><li><strong>7.3.</strong> Вчетвером — папа главный, я второй. Не перебиваю, не исправляю папу при детях, не становлюсь «добрым» на его фоне.</li><li><strong>7.4.</strong> Раз в две недели — «длинный формат»: рыбалка, поход, три часа прогулки. Именно там происходят настоящие разговоры, и именно они запоминаются на годы.</li><li><strong>7.5.</strong> Не превращаю каждую встречу в тренировку и воспитание. Иногда мы просто едим и болтаем — иначе меня начнут избегать, а избегаемый взрослый не воспитывает.</li><li><strong>7.6.</strong> Начало и конец встречи ритуальны: как здороваемся, как прощаемся, что каждый забирает с собой. Ритуал создаёт ощущение «своего места».</li><li><strong>7.7.</strong> Заканчиваю на хорошем. Незаконченный разбор переносится, а не дожимается в дверях.</li></ul>
+<hr></div></details>
+<details class="card card--fold" id="r8"><summary><span class="sum-t">Раздел 8. Связь с папой</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><ul><li><strong>8.1.</strong> Сверка раз в неделю, 10–15 минут, по структуре: <strong>что видел → что заметил в динамике → что предлагаю → что нужно от тебя</strong>. Это не отчёт о поведении.</li><li><strong>8.2.</strong> Передаю <strong>состояние и динамику</strong>, а не содержание разговоров. «Ему тяжело» — можно. «Он сказал про тебя вот это» — нельзя.</li><li><strong>8.3.</strong> Не критикую папу и не оцениваю его решения. Вижу проблему — спрашиваю: «Как ты на это смотришь?» — и уважаю ответ.</li><li><strong>8.4.</strong> В отношения папы и мамы не втянут. Сторону не занимаю, не комментирую, не обсуждаю.</li><li><strong>8.5.</strong> Если папа просит «повлияй» — не давлю, а честно говорю, что реально могу: быть рядом, задать вопрос, поддержать ритм.</li><li><strong>8.6.</strong> Если вижу красный флаг (см. Документ 2) — говорю папе прямо, без обёртки и без отсрочки.</li></ul>
+<hr></div></details>
+<details class="card card--fold" id="r9"><summary><span class="sum-t">Раздел 9. Мои личные риски: привычка требовать и оценивать</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p>Это самый вероятный источник сбоя: я привык работать с мальчиками в режиме требований и результата — мне это естественно. Здесь задача другая, и старая привычка будет тянуть назад.</p>
+<ul><li><strong>9.1.</strong> Первым же разговором обозначаю рамку: «Наши встречи — не занятия, и я вас здесь не оцениваю. Я ваш взрослый друг».</li><li><strong>9.2.</strong> Не живу прошлым и не строю отношения на «а вот раньше». Прошлое — не валюта и не рычаг.</li><li><strong>9.3.</strong> Не обсуждаю с детьми других взрослых, которые с ними занимаются. Ни слова — даже если папа начинает.</li><li><strong>9.4.</strong> Не сортирую мальчиков по способностям. Никогда: «старший сильнее», «младший старательнее».</li><li><strong>9.5.</strong> Моя усталость — моя ответственность. Пришёл выжатый — переношу встречу, а не вымещаю.</li><li><strong>9.6.</strong> Я не работаю на энтузиазме. Горизонт — три месяца. Чувствую, что сдуваюсь — сверка с папой и упрощение, а не героизм.</li></ul>
+<hr></div></details>
+<details class="card card--fold" id="r10"><summary><span class="sum-t">Раздел 10. Стоп-правила (никогда, ни при каких обстоятельствах)</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><ol><li>Не кричать, не пугать, не унижать.</li><li>Не наказывать и не отменять решения папы.</li><li>Не сравнивать братьев.</li><li>Не обманывать, не обещать зря, не исчезать без предупреждения.</li><li>Не стыдить за чувства и за привязанность к маме.</li><li>Не обсуждать одного брата с другим, а маму — ни с кем.</li><li>Не занимать место папы.</li><li>Не разбирать конфликт в момент аффекта.</li><li>Не делать за ребёнка его работу.</li><li>Не становиться судьёй между взрослыми.</li></ol>
+<hr></div></details>
+<details class="card card--fold" id="r11"><summary><span class="sum-t">Раздел 11. Проверка «я сбился» — 7 вопросов себе раз в две недели</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><ol><li>Я больше говорю или слушаю?</li><li>Дети идут на встречу охотно или «по обязанности»?</li><li>Было ли у меня за две недели время 1:1 с каждым?</li><li>Произносил ли я сравнение вслух — хоть раз?</li><li>Повышал ли я голос?</li><li>Папа чувствует поддержку или контроль?</li><li>Что я <strong>сделал вместе с ними</strong> (не «для них») за эти две недели?</li></ol>
+<p>Три и больше «неудобных» ответа — значит, я сполз в роль инструктора или контролёра. Возврат: раздел 0, правила 5.1 и 7.5.</p>
+<hr>
+<p><em>Следующий документ: <code>02_protokoly_tipovyh_situaciy.md</code> — что делать в конкретных ситуациях. Затем <code>03_plan_90_dney.md</code>.</em></p></div></details><p class="totop"><a href="#top">↑ Наверх</a></p></section>
+<section class="pane" id="p"><h1 class="doc-title">🧭 Протоколы</h1><nav class="toc"><span class="toc-h">Содержание</span><a class="chip" href="#p1">Вспышка / истерика старшего при мне</a><a class="chip" href="#p2">Старший говорит про маму и ревность</a><a class="chip" href="#p3">Ссора братьев при мне («кто прав?»)</a><a class="chip" href="#p4">Младший «подхватил» крик старшего</a><a class="chip" href="#p5">«У меня не получится» / обвал после ошибки</a><a class="chip" href="#p6">Отказ от дела (не хочу на турник / фортепиан</a><a class="chip" href="#p7">Успех старшего на глазах младшего</a><a class="chip" href="#p8">Домашнее задание младшего, я рядом</a><a class="chip" href="#p9">Гаджет на встрече</a><a class="chip" href="#p10">«Плохой день», папа звонит и просит поговори</a><a class="chip" href="#p11">Я сам сорвался или ошибся</a><a class="chip" href="#p12">Завершение встречи и «он рассказал лишнее»</a><a class="chip" href="#p13">Длинный формат (рыбалка, поход) — использова</a></nav>
+<section class="card card--intro"><p><strong>Кому:</strong> наставнику <strong>Как пользоваться:</strong> прочитать заранее, один раз проговорить вслух ключевые фразы — чтобы в момент стресса они были готовы, а не придумывались на месте. В каждом протоколе: когда включается → чего не делаю → шаги → готовые фразы → после → красный флаг.</p>
+<blockquote>Общая рамка для всех ситуаций: <strong>заметил → назвал → принял → граница → разбор позже → ремонт</strong>. Разбор — только в спокойствии, коротко, «плечом к плечу».</blockquote>
+<hr></section>
+<details class="card card--fold" id="p1" open><summary><span class="sum-t">П1. Вспышка / истерика старшего при мне</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p><strong>Когда:</strong> крик, слёзы, хлопанье дверью, «уйди», «ты меня не понимаешь», угрозы, уход из кафе/с прогулки.</p>
+<p><strong>Не делаю:</strong> не воспитываю, не объясняю, не спорю, не «привожу в чувство» силой, не звоню папе при нём, не наказываю, не отменяю встречу в наказание.</p>
+<p><strong>Шаги</strong></p>
+<ol><li><strong>Опускаю свой голос и темп</strong> — ниже и медленнее, чем у него. Это единственный работающий способ снизить накал.</li><li><strong>Убираю зрителей и шум:</strong> выйти на улицу, отойти, убрать телефон.</li><li><strong>Одна фраза, без «но»:</strong> «Я вижу, тебе сейчас очень плохо. Я никуда не ухожу».</li><li><strong>Молчу.</strong> Держу паузу; предлагаю воду/движение/воздух — тело выходит из аффекта быстрее слов.</li><li><strong>Когда выдохнул</strong> — одна короткая фраза, без разбора: «Ты в порядке. Мы никуда не спешим».</li><li><strong>Разбор — не сегодня или позже, на ходу:</strong> что было до вспышки, что помогло, что попробуем в следующий раз.</li></ol>
+<p><strong>Фразы</strong></p>
+<ul><li>«Я не буду сейчас ничего объяснять. Просто побуду рядом».</li><li>«Злиться — нормально. Кричать на брата — нет. Это две разные вещи».</li><li>«Вода или пройтись? Выбирай».</li></ul>
+<p><strong>После:</strong> 3 строки в журнал (что было триггером, сколько минут до восстановления). Папе — про состояние и динамику, без деталей и без «он опять».</p>
+<p><strong>Красный флаг:</strong> вспышка дольше ~30–40 минут, агрессия с повреждением предметов/себя, угрозы, «я не хочу жить», или частота растёт месяц к месяцу → сказать папе прямо, обсудить психолога. Наставничество при этом продолжается.</p>
+<hr></div></details>
+<details class="card card--fold" id="p2" open><summary><span class="sum-t">П2. Старший говорит про маму и ревность</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p><strong>Когда:</strong> «Ты его любишь больше», «мама всегда на его стороне», «меня никто не замечает», «он ей нужнее».</p>
+<p><strong>Не делаю:</strong> не спорю («неправда, она вас любит одинаково»), не стыжу («ты же старший»), не читаю лекцию про братскую любовь, не передаю это маме в виде жалобы.</p>
+<p><strong>Шаги</strong></p>
+<ol><li><strong>Признаю чувство как факт, не как претензию:</strong> «Тебе мало мамы. Это не выдумка и не каприз».</li><li><strong>Снимаю вину:</strong> «Из-за этого ты не становишься плохим братом».</li><li><strong>Не спорю о фактах</strong> («она любит вас одинаково») — спорю только о праве чувствовать: «Ты можешь так чувствовать, даже если она любит вас одинаково».</li><li><strong>Возвращаю ему его собственное место:</strong> «Ты не «второй» и не «тот, кто должен уступить». Ты первый — по времени, по силе, по ответственности. Это твоё, у тебя это никто не забирает».</li><li><strong>Дальше — действие, а не разговор:</strong> физическая нагрузка, мужское дело, «пойдём что-нибудь сделаем вместе».</li></ol>
+<p><strong>Фразы</strong></p>
+<ul><li>«Ревность не делает тебя плохим. Она показывает, что тебе важно быть любимым. Это нормально».</li><li>«Одно я тебе обещаю точно: моё время с тобой не уменьшится, что бы ни происходило».</li><li>«Как думаешь, что тебе на самом деле нужно в такие минуты — побыть с мамой, побыть со мной или чтобы тебя просто не трогали?»</li></ul>
+<p><strong>После:</strong> сказать папе <strong>формулировку, а не содержание</strong>: «Он переживает нехватку маминого внимания; ему нужно не убеждение, а гарантированное личное время с ней». Решение по семейной логике — папино.</p>
+<p><strong>Красный флаг:</strong> фразы «я им не нужен», «лучше бы меня не было», отказ от еды/сна, устойчивое самообесценивание.</p>
+<hr></div></details>
+<details class="card card--fold" id="p3" open><summary><span class="sum-t">П3. Ссора братьев при мне («кто прав?»)</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p><strong>Когда:</strong> крик друг на друга, обвинения, драка, слёзы, требование рассудить.</p>
+<p><strong>Не делаю:</strong> не назначаю виноватого, не наказываю, не «выясняю обстоятельства», не делю на «старший должен уступить».</p>
+<p><strong>Шаги</strong></p>
+<ol><li><strong>Стоп физически</strong> (если есть риск удара) — развести, без нотаций.</li><li><strong>Одна фраза на обоих:</strong> «Я не разбираю, кто начал. Я помогаю закончить».</li><li><strong>Развожу по разным точкам</strong> на 5–10 минут — не как наказание, а как способ выйти из аффекта: «Каждый в свою сторону, потом поговорим».</li><li><strong>Возвращаю по одному, по 2 минуты:</strong> «Что ты хотел в тот момент?» → «Как можно было получить это иначе?»</li><li><strong>Свожу вместе и передаю им слово:</strong> пусть <strong>сами</strong> скажут друг другу по одному предложению и договорятся о правиле на следующий раз. Моя задача — держать рамку, а не придумывать решение.</li><li><strong>Ремонт обязателен:</strong> извиниться/пожать руку/сделать что-то друг для друга.</li></ol>
+<p><strong>Фразы</strong></p>
+<ul><li>«Я не судья. Мне не нужно знать, кто виноват — мне нужно, чтобы вы оба умели выходить из этого».</li><li>«Вы можете злиться друг на друга. Драться — нельзя. Это правило, а не настроение».</li></ul>
+<p><strong>После:</strong> если ссора повторяется по одной схеме — сказать папе схему («дело не в поводе, а в том, что он ищет подтверждение, что он важнее»).</p>
+<hr></div></details>
+<details class="card card--fold" id="p4" open><summary><span class="sum-t">П4. Младший «подхватил» крик старшего</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p><strong>Когда:</strong> младший начинает кричать/злиться в ответ на эмоции старшего, копирует его тон.</p>
+<p><strong>Не делаю:</strong> не говорю «ты как он», не сравниваю («а вот брат…»), не наказываю за «заражение», не делаю его жертвой («он маленький, уступи»).</p>
+<p><strong>Шаги</strong></p>
+<ol><li><strong>Обращаюсь к младшему отдельно, коротко:</strong> «Ты сейчас не в своей злости. Это его. Своё можно, чужое не обязательно».</li><li><strong>Даю навык выхода, а не терпения:</strong> «Когда на тебя кричат — ты имеешь право выйти. Не убегать, а выйти и сказать: «я не буду в этом участвовать».</li><li><strong>Отрабатываем в спокойствии</strong> (в кафе, на прогулке): репетируем эту фразу вслух, по ролям, один раз. Навык, не отрепетированный в покое, в стрессе не появится.</li><li><strong>Хвалю точно:</strong> «Вот это было сильно — ты вышел, а не закричал в ответ».</li></ol>
+<p><strong>Фразы</strong></p>
+<ul><li>«Твоя злость — твоя. Его злость — его. Ты не обязан её подхватывать».</li><li>«Сказать «стоп» — это не слабость. Это самое взрослое, что можно сделать в комнате с криком».</li></ul>
+<hr></div></details>
+<details class="card card--fold" id="p5" open><summary><span class="sum-t">П5. «У меня не получится» / обвал после ошибки</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p><strong>Когда:</strong> старший не выиграл, ошибся, не смог, «я бездарный», «я всё испортил», отказ от попытки.</p>
+<p><strong>Не делаю:</strong> не утешаю пустым «ты лучший», не обесцениваю («подумаешь, ерунда»), не читаю мотивационную лекцию, не начинаю разбирать технику.</p>
+<p><strong>Шага</strong></p>
+<ol><li><strong>Признаю факт:</strong> «Да, не получилось. Это факт, а не приговор».</li><li><strong>Отделяю личность от результата:</strong> «Ты не стал хуже. Ты сделал попытку, она не сработала».</li><li><strong>Возвращаю управляемость:</strong> «Что из этого зависит от тебя?» — и жду ответа, даже неточного.</li><li><strong>Один конкретный следующий шаг</strong>, маленький и в тот же день.</li><li><strong>История из своей жизни</strong> — короткая, про свой провал, без морали и без «поэтому теперь ты должен».</li></ol>
+<p><strong>Фразы</strong></p>
+<ul><li>«Сильный — не тот, кто не падает. Сильный — тот, кто знает, что делать после».</li><li>«Мне важен не твой результат. Мне важно, что ты сделаешь на следующей неделе».</li></ul>
+<hr></div></details>
+<details class="card card--fold" id="p6" open><summary><span class="sum-t">П6. Отказ от дела (не хочу на турник / фортепиано / IT / «скучно»)</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p><strong>Когда:</strong> «не буду», «не хочу», «отстань», саботаж на встрече.</p>
+<p><strong>Не делаю:</strong> не заставляю силой, не торгуюсь («сделаешь — получишь»), не отменяю дело навсегда, не превращаю в спор о власти.</p>
+<p><strong>Шаги</strong></p>
+<ol><li><strong>Разделяю человека и дело:</strong> «Ты можешь не хотеть. Дело от этого не исчезает».</li><li><strong>Даю выбор внутри правила:</strong> не «делать или нет», а «как и когда» — 5 подтягиваний сейчас или 8 после прогулки; гамма или пьеса.</li><li><strong>Уменьшаю до минимума, но не до нуля:</strong> «Сегодня — только подход к турнику и одно подтягивание. Всё».</li><li><strong>Не спорю больше двух фраз.</strong> Дальше — молчаливое присутствие и своё дело рядом; дети редко выдерживают тишину дольше десяти минут.</li><li><strong>Отмечаю сам факт выполнения</strong>, а не объём: «Ты сделал. Это и есть воля».</li></ol>
+<p><strong>Фразы</strong></p>
+<ul><li>«Я не буду тебя заставлять. Но и врать, что это неважно, не буду».</li><li>«Выбирай: сейчас или через полчаса. «Никогда» — не вариант».</li></ul>
+<hr></div></details>
+<details class="card card--fold" id="p7" open><summary><span class="sum-t">П7. Успех старшего на глазах младшего</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p><strong>Когда:</strong> старший что-то сделал лучше, больше, ярче; младший рядом.</p>
+<p><strong>Не делаю:</strong> не хвалю одного в сравнении с другим, не успокаиваю младшего фальшивой похвалой, не делаю вид, что разницы нет.</p>
+<p><strong>Шаги</strong></p>
+<ol><li><strong>Хвалю точно и процессно, не глобально:</strong> «Ты подтянулся 8 раз — потому что делал это три недели каждый день». Не «ты сильный».</li><li><strong>Обязательно нахожу и озвучиваю то же качество у младшего — по факту:</strong> «А ты сегодня не бросил на пятом. Это то же самое упорство».</li><li><strong>Не приписываю старшему роль «эталона»:</strong> «Его результат — его. Твой — твой. Вы не в одном зачёте».</li><li><strong>Даю младшему свою отдельную территорию</strong>, где он первый и лучший без оговорок.</li></ol>
+<hr></div></details>
+<details class="card card--fold" id="p8" open><summary><span class="sum-t">П8. Домашнее задание младшего, я рядом</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p><strong>Когда:</strong> сижу рядом, пока он делает уроки (на квартире или по видеосвязи).</p>
+<p><strong>Не делаю:</strong> не решаю за него, не проверяю каждую строчку, не поправляю ошибку сразу, не превращаю в урок, не наказываю за скорость.</p>
+<p><strong>Шаги</strong></p>
+<ol><li><strong>Своё дело рядом:</strong> читаю/работаю — я не надзиратель, а человек, занятый своим.</li><li><strong>Один вопрос на старте:</strong> «Что задано и с чего начнёшь?» — план его, не мой.</li><li><strong>Ошибку не исправляю сразу.</strong> Даю закончить и вернуться: «Тут перечитай» — вместо «здесь неверно».</li><li><strong>Правило 20 минут:</strong> если буксует — короткий перерыв с движением, не с телефоном.</li><li><strong>Закончили — смотрим не на «всё ли правильно», а на «что было трудно»</strong>. Один вопрос, один ответ.</li></ol>
+<p><strong>Фразы</strong></p>
+<ul><li>«Я рядом, но не вместо тебя. Если упрёшься — скажи, я дам подсказку, не ответ».</li><li>«Мне не нужен идеальный почерк. Мне нужно, чтобы ты сам понял, что пишешь».</li></ul>
+<hr></div></details>
+<details class="card card--fold" id="p9" open><summary><span class="sum-t">П9. Гаджет на встрече</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p><strong>Когда:</strong> «Можно я поиграю?», телефон в руках вместо общения.</p>
+<p><strong>Не делаю:</strong> не отбираю молча, не читаю мораль о вреде телефона, не воюю.</p>
+<p><strong>Шаги</strong></p>
+<ol><li><strong>Договариваюсь до встречи, а не в моменте:</strong> «На встрече — без телефона, он в сумке. В конце — 10 минут твои».</li><li><strong>Даю замену, а не запрет:</strong> рыбалка, дорога, кафе с настольной игрой, задача, физическая нагрузка.</li><li><strong>Соблюдаю симметрию:</strong> мой телефон тоже в сумке. Иначе правило не работает.</li><li>Если нарушил — <strong>последствие, не нотация</strong>: «Телефон в сумку до конца встречи. Спокойно, без обсуждения».</li></ol>
+<hr></div></details>
+<details class="card card--fold" id="p10" open><summary><span class="sum-t">П10. «Плохой день», папа звонит и просит поговорить</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p><strong>Когда:</strong> папа звонит: «Сорвался, истерика, поговори с ним» — а встречи сегодня не планировалось.</p>
+<p><strong>Не делаю:</strong> не звоню «на ковёр», не начинаю разбор по телефону, не изображаю спасателя, не отменяю свои дела молча.</p>
+<p><strong>Шаги</strong></p>
+<ol><li><strong>Уточняю у папы три вещи:</strong> что случилось по факту / в каком он состоянии сейчас / что папа уже сказал и решил. (Не переигрываю папины решения.)</li><li><strong>Звоню не «разбирать», а «быть рядом»:</strong> коротко, 3–5 минут, голос ровный. «Привет. Папа сказал, что день был тяжёлый. Я не с разбором. Просто хотел, чтобы ты знал: я на связи».</li><li><strong>Один вопрос, не три.</strong> Дальше — молчу и слушаю.</li><li><strong>Не решаю проблему по телефону.</strong> Договариваюсь о встрече в ближайшие день-два: «Давай в четверг сходим, там поговорим нормально».</li><li><strong>Если он не хочет говорить</strong> — не давлю: «Окей. Я всё равно в четверг приду».</li></ol>
+<p><strong>Красный флаг:</strong> если такие звонки чаще 2 раз в неделю — это уже не «плохие дни», а система. Обсуждать с папой план, а не тушить.</p>
+<hr></div></details>
+<details class="card card--fold" id="p11" open><summary><span class="sum-t">П11. Я сам сорвался или ошибся</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p><strong>Когда:</strong> повысил голос, сказал лишнее, ошибся в факте, забыл обещанное, был несправедлив.</p>
+<p><strong>Не делаю:</strong> не оправдываюсь долго, не сваливаю на усталость, не «заглаживаю» подарками.</p>
+<p><strong>Шаги</strong></p>
+<ol><li><strong>Проговариваю вслух, при них, коротко:</strong> «Я сейчас на тебя наорал. Это было неправильно. Извини».</li><li><strong>Называю, что со мной было:</strong> «Я устал и разозлился. Это моя ответственность, не твоя вина».</li><li><strong>Говорю, что сделаю иначе:</strong> «В следующий раз я возьму паузу вместо крика».</li><li><strong>Не требую немедленного прощения.</strong> Даю время.</li></ol>
+<p>Это самый сильный обучающий эпизод за месяц: мальчики видят, как мужчина обращается со своей ошибкой. Не тратьте его.</p>
+<hr></div></details>
+<details class="card card--fold" id="p12" open><summary><span class="sum-t">П12. Завершение встречи и «он рассказал лишнее»</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p><strong>Когда:</strong> встреча закончилась; или ребёнок рассказал что-то про родителей / попросил «не говори папе».</p>
+<p><strong>Не делаю:</strong> не пересказываю папе содержание, не обсуждаю маму, не превращаю откровенность в оценку.</p>
+<p><strong>Шаги</strong></p>
+<ol><li><strong>Закрываю встречу ритуалом:</strong> «Что забираешь с собой? Что было лучшим? Когда увидимся?»</li><li><strong>Если попросил не говорить</strong> — держу слово. Исключения (безопасность, угроза здоровью) называю <strong>сразу</strong>: «Есть вещи, о которых я обязан сказать папе — если будет угроза твоему здоровью. Всё остальное останется между нами».</li><li><strong>Про родителей слушаю, не комментирую.</strong> «Понял. Это останется здесь». Не «твоя мама неправа».</li><li><strong>Папе — про состояние, а не про текст</strong> (см. П2).</li><li><strong>3 строки в журнал:</strong> что видел / что зацепило / что сделаю иначе.</li></ol>
+<hr></div></details>
+<details class="card card--fold" id="p13" open><summary><span class="sum-t">П13. Длинный формат (рыбалка, поход) — использовать по назначению</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p><strong>Когда:</strong> 3+ часа вдвоём или втроём на природе.</p>
+<p><strong>Не делаю:</strong> не забиваю день «воспитательными беседами», не устраиваю «серьёзный разговор у костра» по расписанию.</p>
+<p><strong>Шаги</strong></p>
+<ol><li><strong>60–70% времени — просто дело:</strong> снасти, костёр, дорога. Разговор случится сам.</li><li><strong>Готовлю только один открытый вопрос</strong> на всю поездку. Например: «Что в школе самое трудное?» — и молчу.</li><li><strong>Использую «плечо к плечу»:</strong> говорить проще, когда смотрят не на тебя, а на поплавок.</li><li><strong>Фиксирую достижение:</strong> «Ты впервые сам собрал удочку» — материал для похвалы на месяц вперёд.</li></ol>
+<hr>
+<p><em>Следующий документ: <code>03_plan_90_dney.md</code>.</em></p></div></details><p class="totop"><a href="#top">↑ Наверх</a></p></section>
+<section class="pane" id="pl"><h1 class="doc-title">📅 План 90 дней</h1><nav class="toc"><span class="toc-h">Содержание</span><a class="chip" href="#pl1">Три результата за 90 дней</a><a class="chip" href="#pl2">Кто за что отвечает</a><a class="chip" href="#pl3">Типовая неделя наставника</a><a class="chip" href="#pl4">Месяц 1. Роль и ритм</a><a class="chip" href="#pl5">Месяц 2. Пауза и самообладание</a><a class="chip" href="#pl6">Месяц 3. Поступок и передача ответственности</a><a class="chip" href="#pl7">Инструменты (минимум, не больше пяти)</a><a class="chip" href="#pl8">Как мерить результат (5 показателей)</a><a class="chip" href="#pl9">Точки сверки</a><a class="chip" href="#pl10">Если всё сорвалось</a><a class="chip" href="#pl11">Чего в эти 90 дней не делаем</a><a class="chip" href="#pl12">Первый шаг (на этой неделе)</a></nav>
+<section class="card card--intro"><p><strong>Кому:</strong> наставнику (и папе — на сверку) <strong>Логика:</strong> сначала роль и ритм → потом пауза и самообладание → потом поступок и передача ответственности. Ничего не вводится раньше времени.</p>
+<hr></section>
+<details class="card card--fold" id="pl1"><summary><span class="sum-t">1. Три результата за 90 дней</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p>Не «исправить характер», а три проверяемых сдвига:</p>
+<ol><li><strong>Старший умеет выходить из вспышки с помощью, а не до конца.</strong> Появляются 2–3 названных им самим способа разрядки, и время восстановления сокращается примерно вдвое.</li><li><strong>Ссоры заканчиваются ремонтом.</strong> В большинстве случаев кто-то из братьев возвращается и чинит отношения сам, без взрослого.</li><li><strong>Утренний ритм держится большую часть недели</strong> — душ, зарядка с турником, завтрак, созидательное дело, — и мальчики делают это без ежедневного напоминания-скандала.</li></ol>
+<p>Всё остальное (фортепиано, IT, добрые дела, оценки) — средства, а не цели этих 90 дней.</p>
+<hr></div></details>
+<details class="card card--fold" id="pl2"><summary><span class="sum-t">2. Кто за что отвечает</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><table><thead><tr><th>Зона</th><th>Папа</th><th>Наставник</th><th>Мама</th></tr></thead><tbody><tr><td>Режим, подъём, отбой, последствия</td><td><strong>держит</strong></td><td>спрашивает, поддерживает, свидетельствует</td><td>не втягивается в спор о правилах</td></tr><tr><td>Отношения с мамой, ревность</td><td>согласует логику</td><td>снимает напряжение, даёт старшему «своё место»</td><td>остаётся мамой, не «арбитром»</td></tr><tr><td>Самообладание</td><td>первая линия в моменте</td><td>тренирует навык на нейтральной территории</td><td>не наказывает и не стыдит за чувства</td></tr><tr><td>Созидательное дело</td><td>следит за регулярностью</td><td>даёт «мужской» смысл и пример</td><td>поддерживает интерес</td></tr><tr><td>Добрые дела</td><td>замечает вслух</td><td>встраивает в свои встречи</td><td>принимает помощь с благодарностью</td></tr></tbody></table>
+<p><strong>Правило одной системы:</strong> у семьи — один набор правил. Наставник не вводит собственных требований, он <strong>усиливает папины</strong>. Любое расхождение решается в еженедельном разговоре, а не при детях.</p>
+<hr></div></details>
+<details class="card card--fold" id="pl3"><summary><span class="sum-t">3. Типовая неделя наставника</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><table><thead><tr><th>Когда</th><th>Что</th><th>Формат</th></tr></thead><tbody><tr><td>1 раз в неделю, фиксированный день</td><td>Разговор с папой, 10–15 мин</td><td>телефон, по структуре: что видел → динамика → что предлагаю → что нужно от тебя</td></tr><tr><td>2 раза в неделю</td><td>Встреча с детьми, 1–1,5 часа</td><td>нейтральная территория: кафе, прогулка, квартира, зал</td></tr><tr><td>1 раз в 2 недели</td><td>Длинный формат, 3+ часа</td><td>рыбалка, поход, долгая прогулка</td></tr><tr><td>1 раз в месяц с каждым</td><td>Встреча <strong>1:1</strong></td><td>обязательно, не отменяется</td></tr><tr><td>Раз в месяц</td><td>Встреча вчетвером с папой</td><td>проверка, что правила живут при взрослых</td></tr><tr><td>После каждой встречи</td><td>3 строки в журнал</td><td>что видел / что зацепило / что сделаю иначе</td></tr><tr><td>Раз в 2 недели</td><td>7 вопросов «я не сбился» (Документ 1, раздел 11)</td><td>5 минут наедине</td></tr></tbody></table>
+<p><strong>Минимальный режим</strong> (если неделя провалилась): 1 звонок папе + 1 встреча с детьми. Этого достаточно, чтобы не потерять контакт.</p>
+<hr></div></details>
+<details class="card card--fold" id="pl4"><summary><span class="sum-t">4. Месяц 1. Роль и ритм</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p><strong>Цель:</strong> установить роль (взрослый друг, а не проверяющий), собрать контакт, встроиться в папин режим. Ничего не «лечим».</p>
+<p><strong>Неделя 1 — установка</strong></p>
+<ul><li>Разговор с папой: три результата, роли, конфиденциальность, чего наставник НЕ делает, красные флаги. Договориться о дне еженедельного звонка.</li><li><strong>Разговор с мальчиками о роли</strong>, отдельно и коротко: «Я к вам прихожу не проверять и не оценивать. Я ваш взрослый друг: ничего не докладываю, и моё время с вами — ваше».</li><li>Первая встреча — <strong>просто хорошее время</strong>: кафе/прогулка, без заданий и без разговоров «о главном».</li></ul>
+<p><strong>Неделя 2 — ритм без давления</strong></p>
+<ul><li>Ввести свой личный пример: рассказывать про свой турник/зарядку как факт, не как мораль.</li><li>Вопрос вместо проверки: «Как прошло утро?» вместо «Сделал?».</li><li>Договориться о ритуале встречи (как здороваемся/прощаемся, «что забираешь с собой»).</li></ul>
+<p><strong>Неделя 3 — турник как якорь</strong></p>
+<ul><li>Ввести турник в свои встречи (зал/квартира/площадка): <strong>личный рекорд, а не соревнование между братьями</strong>. Записывать каждому в своё.</li><li>Первая похвала строго за процесс: «ты делал это три недели».</li><li>Первая встреча 1:1 с каждым (по 1 часу).</li></ul>
+<p><strong>Неделя 4 — первая сверка</strong></p>
+<ul><li>Сверка с папой: что видно, что работает, что мешает. Спросить, не появилось ли ощущения «контроля».</li><li>Спросить детей прямо: «Что в наших встречах нравится, что нет?» — и изменить хотя бы одно.</li><li>Собрать первую «карту утра» (см. раздел 7) — её ведёт папа, наставник только спрашивает.</li></ul>
+<p><strong>Критерий перехода в месяц 2:</strong> дети идут на встречу охотно; наставник провёл по одной встрече 1:1 с каждым; утренний ритм хотя бы частично отслеживается.</p>
+<p><strong>Главный риск месяца:</strong> наставник включается «по-инструкторски» — с требованиями, нагрузкой и оценкой. Признак: дети подбираются, отвечают коротко, отказываются от встреч.</p>
+<hr></div></details>
+<details class="card card--fold" id="pl5"><summary><span class="sum-t">5. Месяц 2. Пауза и самообладание</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p><strong>Цель:</strong> превратить «успокойся» в конкретный навык, известный обоим мальчикам и наставнику.</p>
+<p><strong>Неделя 5 — язык эмоций</strong></p>
+<ul><li>Ввести шкалу <strong>1–5</strong> («спокоен — закипаю — взрыв»): сначала на нейтральных примерах (кино, история, свой день), не на мальчиках.</li><li>Учить называть состояние простыми словами: злость / обида / стыд / зависть / усталость / «мало внимания».</li><li>Правило: сначала называем, потом действуем.</li></ul>
+<p><strong>Неделя 6 — «карта паузы»</strong></p>
+<ul><li>Каждый мальчик выбирает <strong>свои</strong> 3 способа разрядки из списка (вода, душ, движение, турник, отжимания, выйти, подышать 4-7-8, сжать-разжать, посчитать). Подписываем — это его карта, не моя.</li><li>Репетируем <strong>в спокойствии</strong>: по ролям, вслух. Навык, не отрепетированный в покое, в стрессе не появляется.</li><li>Ввести ритуал «вышел — вернулся»: право выйти без наказания; обязанность вернуться и починить.</li></ul>
+<p><strong>Неделя 7 — первое применение</strong></p>
+<ul><li>Использовать карту в реальных ситуациях: <strong>одна фраза, одно движение, никаких лекций</strong>.</li><li>Отработать <strong>ремонт</strong> отдельно: «подойти первым и сказать три предложения». Репетируем.</li><li>Отдельная работа со старшим: его «легальное первенство» — поручение, которое только его (снасти, инструмент, ответственность за младшего в походе на 20 минут).</li></ul>
+<p><strong>Неделя 8 — работа с младшим</strong></p>
+<ul><li>Отработать фразу выхода: «Я не буду в этом участвовать» — вслух, по ролям, до автоматизма.</li><li>Похвалить точным образом за факт выхода, а не за «хорошее поведение».</li></ul>
+<p><strong>Критерий перехода в месяц 3:</strong> у каждого есть своя карта паузы и хотя бы один случай успешного применения (пусть неидеального); в ссорах появился ремонт.</p>
+<p><strong>Главный риск месяца:</strong> превращение навыка в инструмент давления («примени свою карту!») — это возвращает всё назад. Карта — право, не обязанность.</p>
+<hr></div></details>
+<details class="card card--fold" id="pl6"><summary><span class="sum-t">6. Месяц 3. Поступок и передача ответственности</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p><strong>Цель:</strong> снять с себя роль «того, кто держит», передать её детям.</p>
+<p><strong>Неделя 9 — вклад</strong></p>
+<ul><li>Ввести «копилку добрых дел»: ежедневное маленькое дело для брата и для родителей. Небольшое, конкретное, регулярное.</li><li>Дать старшему <strong>настоящую, а не декоративную</strong> ответственность: научить младшего турнику, собрать снасти, вести «дневник силы» за двоих.</li><li>Похвала только за вклад: «это было для него важно».</li></ul>
+<p><strong>Неделя 10 — своё дело</strong></p>
+<ul><li>У каждого — своё созидательное дело с видимым результатом за неделю (пьеса, шаг в IT-проекте, поделка, отчёт-кадр).</li><li>Наставник не контролирует процесс, а <strong>спрашивает результат и радуется</strong>. Один вопрос в неделю, не пять.</li></ul>
+<p><strong>Неделя 11 — дети ведут итоги</strong></p>
+<ul><li>Недельный разговор ведут <strong>сами дети</strong> по трём вопросам: что получилось / где было трудно / что на следующей неделе. Наставник молчит и записывает.</li><li>Первый «взрослый» формат: старший выбирает и планирует одну встречу сам (куда идём, что берём).</li></ul>
+<p><strong>Неделя 12 — сверка и решение</strong></p>
+<ul><li>Разговор с папой: что изменилось по трём результатам месяца; что продолжать, что убрать, что добавить.</li><li>Разговор с мальчиками — честный: «Что стало легче? Что осталось тяжёлым? Что мне делать иначе?»</li><li>Решение о следующем цикле (90 дней): продолжать в том же виде / усилить одно направление / привлечь специалиста.</li></ul>
+<p><strong>Критерий успеха цикла:</strong> дети хотя бы один раз справились <strong>без наставника</strong> — и он об этом узнал от папы, а не наоборот.</p>
+<hr></div></details>
+<details class="card card--fold" id="pl7"><summary><span class="sum-t">7. Инструменты (минимум, не больше пяти)</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><ol><li><strong>Карта утра</strong> — 5 пунктов (душ / зарядка+турник / завтрак / созидательное / доброе дело). Ведёт <strong>папа</strong>, ребёнок отмечает сам. Наставник не проверяет, а спрашивает.</li><li><strong>Шкала 1–5</strong> — «спокоен → взрыв». Называет сам ребёнок; взрослый не диагностирует за него.</li><li><strong>Карта паузы</strong> — личные 3 способа разрядки, подписанные рукой ребёнка.</li><li><strong>Копилка добрых дел</strong> — простой список, без призов и рейтингов.</li><li><strong>Журнал наставника</strong> — 3 строки после каждой встречи. Через месяц это единственный честный источник динамики.</li></ol>
+<p><em>Чего не заводим: баллов, звёздочек, рейтингов между братьями, «доски позора». Любая система, где братья соревнуются, усиливает ровно то, с чем мы боремся.</em></p>
+<hr></div></details>
+<details class="card card--fold" id="pl8"><summary><span class="sum-t">8. Как мерить результат (5 показателей)</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><table><thead><tr><th>Показатель</th><th>Как мерить</th><th>Ориентир</th></tr></thead><tbody><tr><td><strong>1. Время восстановления</strong></td><td>сколько минут от начала вспышки до возврата в норму (фиксирует наставник/папа)</td><td>снижение ~в 2 раза за 90 дней</td></tr><tr><td><strong>2. Частота эпизодов</strong></td><td>число вспышек и крупных ссор в неделю</td><td>тренд вниз, не «ноль»</td></tr><tr><td><strong>3. Ремонт своими силами</strong></td><td>доля случаев, когда извинился/подошёл сам</td><td>от 0 к большинству</td></tr><tr><td><strong>4. Утренний ритм</strong></td><td>% дней с полной картой утра</td><td>месяц 1 — хотя бы половина дней; месяц 3 — большинство</td></tr><tr><td><strong>5. Своё дело</strong></td><td>дней в неделю с созидательным делом</td><td>5+</td></tr></tbody></table>
+<p>Плюс один качественный, самый важный: <strong>дети сами спрашивают, когда следующая встреча.</strong></p>
+<p><strong>Правило измерения:</strong> смотрим на тренд за 2–3 недели. Один плохой день — это данные, а не приговор; один хороший — тоже.</p>
+<hr></div></details>
+<details class="card card--fold" id="pl9"><summary><span class="sum-t">9. Точки сверки</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><ul><li><strong>После каждой встречи</strong> — 3 строки в журнал (2 минуты).</li><li><strong>Раз в две недели</strong> — 7 вопросов «я не сбился» (Документ 1, раздел 11).</li><li><strong>В конце каждого месяца</strong> — 30 минут с папой по трём вопросам: что работает / что не работает / что меняем. Без обсуждения личных качеств детей и взрослых.</li><li><strong>В конце цикла</strong> — честный разговор с мальчиками.</li></ul>
+<hr></div></details>
+<details class="card card--fold" id="pl10"><summary><span class="sum-t">10. Если всё сорвалось</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p>Не начинать заново и не «перезапускать программу» — это путь к отказу от идеи.</p>
+<ul><li>Возврат к <strong>последнему работающему элементу</strong> (обычно это ритм встреч и турник).</li><li><strong>Минимальный режим</strong> на 2 недели: 1 звонок папе + 1 встреча. Только он.</li><li>Всё остальное (карты, шкалы, копилки) — на паузу, а не «с удвоенной силой».</li><li>Отдельно проверить три вещи: не сполз ли я в инструктора; не взял ли на себя больше, чем роль позволяет; не превратил ли систему в контроль.</li></ul>
+<hr></div></details>
+<details class="card card--fold" id="pl11"><summary><span class="sum-t">11. Чего в эти 90 дней не делаем</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><ul><li>Не вводим всё сразу. Один новый элемент в неделю — максимум.</li><li>Не трогаем учёбу и оценки — это не наша задача в первом цикле.</li><li>Не «лечим ревность» в лоб (запретами, разговорами «ты же брат»). Работаем через гарантированное время, запрет сравнений и легальное первенство старшего.</li><li>Не просим маму меняться. Её роль — не наша зона.</li><li>Не оцениваем папу. Мы его усиливаем.</li><li>Не обещаем детям того, что зависит не от нас (поездку, рыбалку — только если точно будет).</li></ul>
+<hr></div></details>
+<details class="card card--fold" id="pl12"><summary><span class="sum-t">12. Первый шаг (на этой неделе)</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><ol><li>Позвонить папе и договориться о 40-минутном разговоре в спокойное время (не «по факту ссоры»). Тема: три результата, роли, конфиденциальность, красные флаги, день еженедельной сверки.</li><li>Запланировать первую встречу с мальчиками — <strong>просто хорошее время, без воспитания</strong>. И один разговор о роли: «я здесь не проверяющий, а взрослый друг».</li><li>Завести журнал из трёх строк.</li></ol>
+<p>Всё. Остальное — по плану.</p>
+<hr>
+<p><em>Связанные документы: <code>01_pravila_nastavnika.md</code>, <code>02_protokoly_tipovyh_situaciy.md</code>, <code>koncepciya_nastavnichestva_v1.md</code>.</em></p></div></details><p class="totop"><a href="#top">↑ Наверх</a></p></section>
+<section class="pane" id="k"><h1 class="doc-title">🎯 Концепция</h1><nav class="toc"><span class="toc-h">Содержание</span><a class="chip" href="#k1">Суть в одном абзаце</a><a class="chip" href="#k2">Образ результата (к чему ведём, без иллюзий </a><a class="chip" href="#k3">Исследовательская база: пять опор</a><a class="chip" href="#k4">Ядро концепции: РИТМ — ПАУЗА — ПОСТУПОК</a><a class="chip" href="#k5">Как система устроена: три круга</a><a class="chip" href="#k6">Позиция наставника</a><a class="chip" href="#k7">Границы, безопасность, что вне зоны ответств</a><a class="chip" href="#k8">Десять принципов (из них развернутся правила</a><a class="chip" href="#k9">Карта следующих документов</a><a class="chip" href="#k10">Главные риски и профилактика</a><a class="chip" href="#k-x11">Источники (на чём построена концепция)</a></nav>
+<section class="card card--intro"><h3>Версия 1.0 — общая концепция, без методических деталей</h3>
+<hr></section>
+<details class="card card--fold" id="k1"><summary><span class="sum-t">1. Суть в одном абзаце</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p>Характер не воспитывается словами и нотациями — он выращивается <strong>повторяющимися действиями в устойчивом ритме</strong> и <strong>отношениями, в которых одновременно есть тепло и требование</strong>. Поэтому работа наставника строится не как «исправление недостатков» (борьба с ссорами, ревностью, криком), а как <strong>выращивание трёх опор</strong>: РИТМ (порядок дня), ПАУЗА (самообладание) и ПОСТУПОК (созидание и добро). Плохие привычки уходят сами, когда на их месте появляется работающая конструкция и когда ребёнку невыгодно быть «проблемным» — потому что его место в семье и рядом с наставником не оспаривается.</p>
+<hr></div></details>
+<details class="card card--fold" id="k2"><summary><span class="sum-t">2. Образ результата (к чему ведём, без иллюзий о сроках)</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p>Мы работаем не на «послушных детей», а на <strong>самостоятельных мальчиков, которым можно доверять</strong>. Горизонт реалистичных изменений — 3–6 месяцев на первые устойчивые сдвиги, 2–3 года на характер.</p>
+<p><strong>Старший (10 лет, талантливый, эмоциональный)</strong></p>
+<ul><li>Замечает своё состояние <strong>до</strong> того, как оно его захватило: «я сейчас заведусь».</li><li>Владеет 3–4 законными способами разрядки (движение, вода, дыхание, уход в свою комнату) — и знает, что после разрядки не будет наказания за чувство.</li><li>Переживает ошибку и критику без обвала: талант перестаёт быть единственной опорой его ценности.</li><li>Его первенство признано: у него есть своя территория, своё время, своё «взрослое» дело. Ему не нужно отбирать внимание мамы, потому что его внимание не оспаривается.</li><li>Умеет восстанавливать отношения: подойти первым, сказать «я погорячился». Это — самый точный признак мужского взросления в этом возрасте.</li></ul>
+<p><strong>Младший (8 лет, менее эмоциональный)</strong></p>
+<ul><li>Не «заражается» чужой эмоцией: умеет сказать «стоп, я не буду в этом участвовать» и уйти.</li><li>Имеет собственное пространство и собственную роль, а не роль «того, кого ревнуют».</li><li>Спокойно делает домашнее задание рядом со взрослым, который <strong>не подменяет его работу своей</strong>.</li></ul>
+<p><strong>Вдвоём</strong></p>
+<ul><li>Брат — не соперник, а «свой». Дом — место, где не кричат, и это норма, а не достижение.</li><li>Ссоры случаются (это нормально и даже полезно), но <strong>время восстановления</strong> сокращается и появляется ремонт отношений без взрослого.</li></ul>
+<blockquote><strong>Метрика успеха — не «ноль ссор», а «время до восстановления» и «он сам заметил и исправил».</strong></blockquote>
+<hr></div></details>
+<details class="card card--fold" id="k3"><summary><span class="sum-t">3. Исследовательская база: пять опор</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><h3>Опора 1. Как созревает саморегуляция: сопровождение, а не подавление</h3>
+<p><strong>Что установлено.</strong> У младших школьников способность управлять эмоциями ещё физиологически незрела: префронтальная кора дозревает годами. Регуляция сначала происходит <strong>в паре со взрослым</strong> (co-regulation) и только потом становится собственной. Классические работы Готтмана и коллег показали: там, где взрослый <strong>замечает эмоцию, называет её, принимает и только затем ставит границу поведения</strong> («эмоция-коучинг»), дети лучше регулируют эмоции, внимание и поведение, меньше тревожны и агрессивны, лучше учатся. Там, где эмоцию «гасят» или наказывают за неё (отвергающий стиль), регуляция формируется хуже.</p>
+<p><strong>Что это меняет у нас.</strong> Цель — не «чтобы не злился», а <strong>«чтобы между чувством и действием появилась пауза»</strong>. Наставник сначала <strong>сам является этой паузой</strong> для ребёнка и постепенно передаёт функцию ему. Наказывают поступок, никогда — чувство. Порядок реакции всегда один: <em>заметить → назвать → принять → граница → разбор позже</em>.</p>
+<h3>Опора 2. Ревность: её нельзя запретить, её можно «расколдовать»</h3>
+<p><strong>Что установлено.</strong> Самый устойчивый вывод литературы о сиблингах: конфликт и ревность связаны не с «плохим характером» старшего, а с <strong>восприятием неравного отношения родителей</strong> (parental differential treatment) и с тем, считается ли это отношение справедливым. Прямые сравнения («будь как брат», «посмотри, как он старается») усиливают ревность даже когда они «в пользу» ребёнка. При этом дифференцированное отношение неизбежно и само по себе не вредит — <strong>вредит необъяснённое</strong>. Дети, которым объяснили, почему правила разные («тебе можно позже ложиться, потому что ты старше»), переносят разницу спокойно.</p>
+<p><strong>Что это меняет у нас.</strong> Ревность не лечится требованиями «не ревнуй» и «ты же старший». Она лечится трема вещами: (1) <strong>отдельное нераздельное время</strong> с каждым ребёнком, (2) <strong>полный запрет сравнений</strong>, (3) <strong>объяснение различий логикой, а не статусом</strong>. И четвёртым, самым недооценённым: у старшего должна быть <strong>своя, неоспоримая область первенства</strong>. Конкуренция возникает там, где нишу нужно отвоёвывать.</p>
+<h3>Опора 3. Талантливый ребёнок: хвалить процесс и снимать ценность с результата</h3>
+<p><strong>Что установлено.</strong> В исследованиях Мюллер и Дуэк (более 400 пятиклассников) одна фраза похвалы развела детей по траекториям: похвала за <strong>ум/способности</strong> → дети выбирают задачу, где не рискуют ошибиться, хуже переносят неудачу, приписывают провал своей «неспособности», в итоге показывают худший результат. Похвала за <strong>усилие и стратегию</strong> → выбирают трудное, сохраняют интерес, улучшают результат. Отдельная линия работ показывает: когда самооценка ребёнка «заложена» под достижения в одной области, любая неудача в ней бьёт по личности целиком — и это предсказывает рост тревоги и снижение настроения.</p>
+<p><strong>Что это меняет у нас.</strong> Старший талантлив — и именно поэтому уязвим. Наша задача не «ещё больше развивать», а <strong>расширить основание его ценности</strong>: он ценен не за фортепиано и не за победы. Практически: хвалить <strong>что именно он сделал</strong> (стратегию, упорство, выбор, возвращение после срыва), а не «ты такой способный»; специально давать опыт <strong>трудного, где можно быть неидеальным</strong> (турник, где не получается с 5-го раза, — идеальный тренажёр этого); и отделять оценку поступка от оценки личности в любую сторону.</p>
+<h3>Опора 4. Мальчики: сильный — не значит бесчувственный</h3>
+<p><strong>Что установлено.</strong> Исследования мальчишеского развития (Поллак, «Real Boys»; многолетние интервью Ниобе Вэй) показывают: мальчики <strong>не менее</strong> чувствительны и эмоционально точны, чем девочки, но к 8–10 годам начинают усваивать «код» — не показывать уязвимость, не просить помощи, не плакать. Взрослые с раннего возраста говорят с мальчиками <strong>меньше</strong> про чувства, и это напрямую предсказывает меньший эмоциональный словарь к школьному возрасту. Итог подавления — не сила, а «маска» и накопленное напряжение, которое выходит взрывами.</p>
+<p><strong>Что это меняет у нас.</strong> Требование «мужчина не истерит» даст ровно обратный результат: научит прятать, а не владеть. Мужские качества, которые мы формируем, — это <strong>ответственность, слово, самообладание, воля, защита слабого, уважение к женщине и к младшему, готовность признать ошибку</strong>. И главный инструмент здесь — не беседа, а <strong>пример наставника</strong>: взрослый мужчина, который спокойно называет свои чувства («я разозлился, поэтому взял паузу»), признаёт ошибку вслух и держит слово. Мальчики верят не тому, что им говорят, а тому, что видят.</p>
+<h3>Опора 5. Развивающие отношения и среда: забота + вызов + автономия</h3>
+<p><strong>Что установлено.</strong> Два независимых корпуса исследований сходятся в одном.</p>
+<ul><li><strong>Развивающие отношения</strong> (Search Institute): отношения взрослого с ребёнком работают, только если в них есть <strong>все пять</strong> элементов — заботиться, <strong>бросать вызов/требовать роста</strong>, поддерживать, <strong>делиться властью</strong> (слушать и давать выбор), расширять возможности. Одной заботы без требования — недостаточно; требования без заботы — не работают.</li><li><strong>Теория самодетерминации</strong> (Деси и Райан): устойчивая мотивация (к музыке, спорту, учёбе) держится на трёх потребностях — <strong>автономия</strong> (я выбираю), <strong>компетентность</strong> (у меня получается), <strong>связанность</strong> (меня принимают). В исследованиях занятий музыкой автономная поддержка предсказывает качество практики; психологический контроль — наоборот, убивает внутреннюю мотивацию.</li><li><strong>Про крик</strong> (Wang &amp; Kenny, 976 семей): жёсткая вербальная дисциплина предсказывает <strong>рост</strong> проблем поведения и депрессивных симптомов, и <strong>теплота в остальное время это не компенсирует</strong>. То есть голос взрослого — не «срыв», а обучающий инструмент: ребёнок усваивает способ обращения с силой.</li><li><strong>Про режим</strong>: предсказуемый распорядок снижает число конфликтов (потому что правило спорит с ребёнком вместо взрослого), а самые взрывоопасные точки дня известны заранее — утро, домашнее задание, выключение экрана, отбой. Их не решают в моменте, их готовят заранее.</li></ul>
+<p><strong>Что это меняет у нас.</strong> Наставник — не «ещё один контролёр» и не «добрый дядя». Он <strong>тёплый требовательный взрослый</strong>, который: держит ритм (среда), даёт выбор внутри правил (автономия), ставит посильно трудные задачи (компетентность), принимает безусловно (связанность) и никогда не повышает голос как инструмент.</p>
+<hr></div></details>
+<details class="card card--fold" id="k4"><summary><span class="sum-t">4. Ядро концепции: РИТМ — ПАУЗА — ПОСТУПОК</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p>Формула, из которой дальше выводятся все правила и весь план:</p>
+<blockquote><strong>РИТМ</strong> (порядок) → <strong>ПАУЗА</strong> (самообладание) → <strong>ПОСТУПОК</strong> (созидание и добро) и всё это — внутри <strong>ОТНОШЕНИЙ</strong>, где ребёнка принимают до того, как он что-то докажет.</blockquote>
+<h3>4.1. РИТМ — порядок вместо нотаций</h3>
+<p>День — это конструкция, а не набор уговоров. Утро задаёт тон всему дню: подъём → контрастный душ → зарядка с обязательным турником → завтрак → <strong>созидательное дело</strong> (фортепиано / шаг в IT-проекте / полезное и интересное из YouTube — но <strong>как действие, а не как потребление</strong>). Вечер — сворачивание: ритуал отбоя, фиксированное время сна. И в любой из этих блоков — <strong>одно доброе дело для брата или родителей</strong>.</p>
+<p>Логика здесь не про дисциплину ради дисциплины:</p>
+<ul><li><strong>предсказуемость = меньше поводов для конфликта</strong>: спор идёт с правилом, а не с человеком;</li><li><strong>воля тренируется на малом и ежедневном</strong> — турник, где не получается сегодня, полезнее «большого разговора о силе воли»;</li><li><strong>утро — самый дешёвый способ выиграть весь день</strong>: ребёнок, который уже сделал трудное до завтрака, приходит в школу другим человеком;</li><li>режим <strong>не наказывает</strong>, а держит: пропустил — восстанавливается, а не «лишается».</li></ul>
+<h3>4.2. ПАУЗА — эмоции законны, действия имеют последствия</h3>
+<p>Старший — не «проблема, которую надо починить», а <strong>мальчик с сильной нервной системой и высокой нагрузкой</strong> (талант + школа + младший брат + борьба за маму). Чем сильнее эмоции, тем меньше нужно слов.</p>
+<p>Лестница, которую осваивают оба: <strong>заметить → назвать → выбрать способ разрядки → восстановиться → вернуться и починить отношения</strong>. Наставник проходит её вместе с ребёнком, пока тот не пройдёт её сам: сначала наставник — внешняя пауза, потом ребёнок — своя.</p>
+<p>Ключевые установки:</p>
+<ul><li><strong>В момент аффекта — только присутствие и безопасность.</strong> Никаких нравоучений: разбор — позже, коротко, спокойно, «на земле».</li><li><strong>Истерика заканчивается восстановлением, а не наказанием.</strong> После восстановления — обязательный шаг «вернуться и починить» (извиниться, убрать, обнять, договориться). Это и есть место, где формируется настоящее мужское самообладание.</li><li><strong>Эмоция одного брата — не топливо для другого.</strong> Старший учится разряжаться не «в младшего». Младший учится не подхватывать чужой крик и <strong>иметь право выйти</strong> из ситуации.</li><li><strong>Не судить «кто начал».</strong> В ссоре двух братьев всегда есть один вопрос — «как выйти из этого в следующий раз»; и он решается в спокойное время, а не в момент схватки.</li></ul>
+<h3>4.3. ПОСТУПОК — характер растёт из вклада, а не из оценки</h3>
+<p>Ежедневное «я сделал сам, и это кому-то нужно» — самый мощный механизм и для самооценки, и против ревности:</p>
+<ul><li>старший, который <strong>вкладывается</strong> в семью (учит младшего турнику, делает что-то для мамы), перестаёт переживать себя как «отбирающего внимание»;</li><li>младший, который не только «объект заботы», а умеет ответить брату услугой, перестаёт быть младшим «вообще».</li></ul>
+<p>Созидательное дело должно быть <strong>своё</strong> (ребёнок выбирает внутри предложенного) и <strong>видимое</strong> (не «занимался 20 минут», а «вот что получилось сегодня»).</p>
+<hr></div></details>
+<details class="card card--fold" id="k5"><summary><span class="sum-t">5. Как система устроена: три круга</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><table><thead><tr><th>Круг</th><th>Что это</th><th>Частота</th><th>Доля результата</th></tr></thead><tbody><tr><td><strong>1. Ритм</strong></td><td>Утро, вечер, добрые дела, отбой</td><td>каждый день</td><td>~70%</td></tr><tr><td><strong>2. Моменты</strong></td><td>Пять типовых ситуаций: ссора, истерика, домашнее задание, экран, отбой</td><td>по факту</td><td>~20%</td></tr><tr><td><strong>3. Круг недели</strong></td><td>Встреча с каждым отдельно + итоги: что получилось / где было трудно / что на следующей неделе</td><td>1 раз в неделю</td><td>~10%, но именно здесь передаётся ответственность</td></tr></tbody></table>
+<p>Главный принцип распределения усилий: <strong>не героизм в конфликте, а скучная настройка ритма.</strong> Большинство ссор «выключается» не в момент ссоры, а утром и вечером — до и после.</p>
+<p>Второй принцип: <strong>от наставника к детям</strong> — то есть всё, что делается, постепенно переходит под их ответственность (карточка утра, которую ребёнок сам отмечает; он сам подбирает способ разрядки; он сам ведёт своё дело). Наставничество удалось не тогда, когда дети слушаются, а когда они справляются без него.</p>
+<hr></div></details>
+<details class="card card--fold" id="k6"><summary><span class="sum-t">6. Позиция наставника</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p><strong>Кто он:</strong> взрослый мужчина, который держит слово и пространство. Тёплый и требовательный одновременно. Не второй папа, не учитель, не приятель-ровесник, не спасатель.</p>
+<p><strong>Что его отличает:</strong></p>
+<ul><li>авторитет <strong>постоянством</strong>, а не громкостью: его слово не зависит от его настроения;</li><li>он <strong>наставник, а не судья</strong>: не выносит приговоров («ты эгоист»), а разбирает, как выйти из ситуации иначе;</li><li>он <strong>не делает за</strong>: рядом — да, вместо — нет. Особенно это касается домашнего задания младшего (сидит рядом, спокойно занимается своим делом, не превращается в соавтора) и самостоятельности старшего;</li><li>он <strong>признаёт свои ошибки вслух</strong> — это, а не лекция, показывает мальчикам, что значит быть мужчиной;</li><li>он <strong>никогда не сравнивает</strong> братьев и никогда не обсуждает одного с другим;</li><li>он <strong>не конкурирует с мамой и не занимает её место</strong>. Она — центр эмоционального мира, и это правильно; задача наставника — не заменить её, а снять с неё часть нагрузки и дать мальчикам другое, мужское поле;</li><li>он <strong>не воспитывает в момент аффекта</strong> — ни ребёнка, ни свои собственные эмоции не делает чужими.</li></ul>
+<p><strong>Чего наставник не делает:</strong> не наказывает (последствия — зона родителей), не участвует во взрослых конфликтах, не пересказывает маме то, что сказал ребёнок, не даёт обещаний, которые не выполнит, не строит воспитание на энтузиазме «сегодня поговорим по душам».</p>
+<hr></div></details>
+<details class="card card--fold" id="k7"><summary><span class="sum-t">7. Границы, безопасность, что вне зоны ответственности</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><ul><li><strong>Наставник не отменяет и не назначает наказания</strong> — он согласует логику последствий с мамой и не становится «добрым полицейским».</li><li><strong>Конфиденциальность:</strong> сказанное ребёнком не пересказывается — кроме вопросов безопасности. Дети быстро чувствуют, что «дяде можно доверять», и на этом держится всё.</li><li><strong>Наставник — не терапия.</strong> Если истерики длительные, с агрессией, самоповреждением, угрозами, стойким отказом от учёбы, нарушением сна/аппетита или с фразами «я не нужен» — это не педагогика, это повод к психологу/психотерапевту. Наставничество продолжается <strong>параллельно</strong>, а не вместо.</li><li><strong>Родители — не объект оценки.</strong> Сверхуважительно по отношению к маме; всё, что похоже на «вы неправильно воспитываете», — стоп.</li></ul>
+<hr></div></details>
+<details class="card card--fold" id="k8"><summary><span class="sum-t">8. Десять принципов (из них развернутся правила)</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><ol><li><strong>Сначала отношения, потом требования</strong> — но обязательно оба, иначе это не наставничество, а нянька.</li><li><strong>Порядок вместо нотаций:</strong> взрослый настраивает систему, а не уговаривает ребёнка.</li><li><strong>Хвалить процесс, а не способности</strong> — и отделять поступок от личности в любую сторону.</li><li><strong>Любое чувство законно, любое действие имеет последствия.</strong></li><li><strong>Никогда не сравнивать братьев</strong> — ни в плюс, ни в минус.</li><li><strong>В аффекте — только присутствие.</strong> Уроки потом.</li><li><strong>Сначала «мой», потом «наш»:</strong> у каждого мальчика есть своё время и своя территория, неоспоримые и регулярные.</li><li><strong>Меньше слов, больше повторяемого действия.</strong> Воспитание — это ежедневный ритуал, а не разговор.</li><li><strong>Старший не должен быть «вторым взрослым»</strong> — его первенство признаётся, но ответственность даётся по возрасту.</li><li><strong>Маленькие видимые шаги, никогда «всё сразу».</strong> Сначала утро, потом вечер, потом конфликт.</li></ol>
+<hr></div></details>
+<details class="card card--fold" id="k9"><summary><span class="sum-t">9. Карта следующих документов</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><p>Концепция — рамка. Из неё разворачиваются:</p>
+<ul><li><strong>Д1. Свод правил наставника</strong> — что делает / чего не делает / как говорит / как держит границы (≈30–40 пунктов с готовыми формулировками).</li><li><strong>Д2. Протоколы на 6 типовых ситуаций</strong>: истерика старшего; ссора из-за ревности; младший «подхватил» крик; домашнее задание; выключение экрана; отбой.</li><li><strong>Д3. План действий</strong>: 90 дней — три фазы по 4 недели (1 — ритм и отношения, 2 — пауза и самообладание, 3 — поступок и передача ответственности) → недельный ритм → день наставника.</li><li><strong>Д4. Инструменты</strong>: карточка утра, «карта паузы», шкала самообладания (1–5), журнал наставника, недельный лист, «копилка добрых дел».</li><li><strong>Д5. Разговор с мамой</strong> (как объяснить, что наставник не отнимает её роль, и договориться о единой логике) и <strong>разговор с мальчиками</strong> о правилах — в форме, где правила предлагают они сами.</li><li><strong>Д6. Метрики</strong>: не «ноль ссор», а время восстановления; не «послушание», а «сам заметил»; динамика по неделям, а не по одному дню.</li></ul>
+<hr></div></details>
+<details class="card card--fold" id="k10"><summary><span class="sum-t">10. Главные риски и профилактика</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><table><thead><tr><th>Риск</th><th>Признак</th><th>Профилактика</th></tr></thead><tbody><tr><td>Наставник превращается в «ещё одного контролёра»</td><td>дети прячутся, отвечают формально</td><td>доля требования ≤ доли заботы; не больше одного «требования» за контакт</td></tr><tr><td>Старший решает, что наставник «на стороне младшего»</td><td>холодность, «ты его любишь больше»</td><td>не судить ссоры; своё нераздельное время со старшим; его первенство признано официально</td></tr><tr><td>Режим становится наказанием</td><td>«не сделал зарядку — не получишь…»</td><td>ритм — это конструкция, а не валюта; пропуск восстанавливается, не отменяется</td></tr><tr><td>Мама чувствует, что её оценивают</td><td>напряжение в общении с наставником</td><td>позиция «я помогаю, а не воспитываю вас»; регулярная сверка, а не отчёты</td></tr><tr><td>Всё сдувается через 3 недели</td><td>энтузиазм → откат</td><td>начинать с одного элемента; 90-дневные фазы; поддержка наставника (супервизия/рефлексия)</td></tr></tbody></table>
+<hr></div></details>
+<details class="card card--fold" id="k-x11"><summary><span class="sum-t">Источники (на чём построена концепция)</span><span class="chev" aria-hidden="true"></span></summary><div class="fold-body"><ol><li>Gottman J., Katz L., Hooven C. <em>Parental meta-emotion philosophy and the emotional life of families</em> // Journal of Family Psychology, 1996, 10(3). — эмоциональный коучинг и регуляция у детей. Обзор: <a href="https://en.wikipedia.org/wiki/Meta-emotion" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Meta-emotion</a> ; практика: <a href="https://thefeelingsteacher.org/emotion-coaching/" target="_blank" rel="noopener">https://thefeelingsteacher.org/emotion-coaching/</a></li><li>Volling B. et al. <em>The Development of Sibling Jealousy</em>; обзор литературы о parental differential treatment и ревности. <a href="https://www.researchgate.net/publication/229953994_The_Development_of_Sibling_Jealousy" target="_blank" rel="noopener">https://www.researchgate.net/publication/229953994_The_Development_of_Sibling_Jealousy</a></li><li>Pay C., Whiteman S. <em>Navigating Sibling Rivalry: From Conflict to Connection</em> (Utah State University Extension) — 9 практических стратегий, в т.ч. объяснение различий и запрет сравнений. <a href="https://extension.usu.edu/news/ask-an-expert-navigating-sibling-rivalry-from-conflict-to-connection.pdf" target="_blank" rel="noopener">https://extension.usu.edu/news/ask-an-expert-navigating-sibling-rivalry-from-conflict-to-connection.pdf</a></li><li>Mueller C., Dweck C. <em>Praise for intelligence can undermine children's motivation and performance</em> // JPSP, 1998 — 6 исследований, 400+ пятиклассников. Популярное изложение: <a href="https://nymag.com/news/features/27840/" target="_blank" rel="noopener">https://nymag.com/news/features/27840/</a> ; о рисках «одарённых»: <a href="https://cerevity.com/gifted-kid-burnout/" target="_blank" rel="noopener">https://cerevity.com/gifted-kid-burnout/</a></li><li>Pollack W. <em>Real Boys</em> (1998); Way N. <em>Deep Secrets</em> / <em>Rebels with a Cause</em> — мальчики, «код» и эмоциональная грамотность. Обзор: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC13260952/" target="_blank" rel="noopener">https://pmc.ncbi.nlm.nih.gov/articles/PMC13260952/</a></li><li>Search Institute. <em>Developmental Relationships Framework</em> — 5 элементов (забота, вызов, поддержка, разделение власти, расширение возможностей). <a href="https://blog.searchinstitute.org/behind-the-framework-how-the-developmental-relationships-framework-was-co-created" target="_blank" rel="noopener">https://blog.searchinstitute.org/behind-the-framework-how-the-developmental-relationships-framework-was-co-created</a></li><li>Deci E., Ryan R. — теория самодетерминации: автономия, компетентность, связанность; автономная поддержка и качество практики (в т.ч. музыкальной): <a href="https://selfdeterminationtheory.org/wp-content/uploads/2024/12/2024_Bonneville-RoussyEvans_MusicStudents.pdf" target="_blank" rel="noopener">https://selfdeterminationtheory.org/wp-content/uploads/2024/12/2024_Bonneville-RoussyEvans_MusicStudents.pdf</a></li><li>Wang M.-T., Kenny S. <em>Longitudinal Links Between Harsh Verbal Discipline and Adolescent Conduct Problems and Depressive Symptoms</em> // Child Development, 2014, 85(3) — 976 семей; теплота не компенсирует крик. <a href="https://www.healthline.com/health/parenting/effects-of-yelling-at-kids" target="_blank" rel="noopener">https://www.healthline.com/health/parenting/effects-of-yelling-at-kids</a></li></ol>
+<hr>
+<p><em>Документ — рамка. Детализацию (правила → протоколы → план 90 дней → инструменты) предлагаю делать следующим шагом, по одному документу.</em></p></div></details><p class="totop"><a href="#top">↑ Наверх</a></p></section>
+<div class="nores" id="nores">Ничего не нашлось. Попробуйте другое слово.</div>
+</main>
+
+<nav id="nav"><a class="tab" href="#home"><span class="tab-ico">⚡</span>Главное</a>
+<a class="tab" href="#r"><span class="tab-ico">📏</span>Правила</a>
+<a class="tab" href="#p"><span class="tab-ico">🧭</span>Протоколы</a>
+<a class="tab" href="#pl"><span class="tab-ico">📅</span>План 90 дней</a>
+<a class="tab" href="#k"><span class="tab-ico">🎯</span>Концепция</a></nav>
+<script>__JS__</script>
+</body>
+</html>
