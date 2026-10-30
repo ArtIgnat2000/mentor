@@ -1,6 +1,6 @@
 /* Офлайн-кэш карманного свода.
    Версия подставляется make_pack.py из хэша docs/index.html — вручную не править. */
-const CACHE = 'nastavnik-44478b7021';
+const CACHE = 'nastavnik-699d950e6c';
 const FILES = [
   './', './index.html', './manifest.webmanifest',
   './icon-180.png', './icon-192.png', './icon-512.png'
