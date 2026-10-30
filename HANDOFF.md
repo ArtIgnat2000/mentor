@@ -43,8 +43,9 @@ requirements.txt       Pillow, reportlab, segno (только для сборк�
 ```bash
 python3 build_print.py && python3 build_site.py && python3 make_pack.py
 ```
-Порядок важен: `build_site.py` вставляет ссылки на уже собранные PDF, а `make_pack.py`
-считает версию офлайн-кэша из содержимого `docs/index.html` (вручную версию поднимать не нужно).
+Порядок важен: `build_site.py` вставляет ссылки на уже собранные PDF и обновляет версию
+офлайн-кэша в `docs/sw.js` (вручную её поднимать не нужно). В CI выполняется только
+`build_site.py` — он без зависимостей, поэтому деплой работает без Pillow/reportlab.
 
 **Ключевое требование к сайту:** страница должна работать **без JavaScript**.
 Причина: на iPhone локальный HTML, открытый через приложение «Файлы» (Quick Look), не выполняет JS.
@@ -76,7 +77,8 @@ python3 build_print.py && python3 build_site.py && python3 make_pack.py
 - ✅ `docs/index.html` собирается, 49 разделов, поиск, deep links, работает без JS.
 - ✅ Публикация на GitHub Pages через **GitHub Actions** (`.github/workflows/pages.yml`,
   источник в настройках: Pages → Source: GitHub Actions). Каждый пуш в `main` пересобирает
-  и выкладывает `docs/`; CI дополнительно проверяет, что `docs/index.html` не отстал от markdown.
+  `docs/index.html` из markdown (и версию кэша в `sw.js`) и выкладывает `docs/` — правки
+  в markdown можно делать прямо на GitHub, локальная пересборка нужна только для PDF и иконок.
   Адрес: **https://artignat2000.github.io/mentor/**
 
   Почему Actions, а не «Deploy from a branch»: при источнике `/ (root)` GitHub Pages показывал
