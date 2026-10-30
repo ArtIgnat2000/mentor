@@ -27,6 +27,7 @@ PAGES_URL = "https://artignat2000.github.io/mentor/"
 
 # Печатные материалы: (файл в docs/print/, подпись). Собирает build_print.py.
 PRINT_FILES = [
+    ("00_komplekt_na_pechat.pdf", "Весь комплект одним файлом — обложка и все листы"),
     ("01_na_holodilnik_A4.pdf",  "Пять правил, стоп-лист, три фразы — на холодильник"),
     ("01b_na_holodilnik_A5_2up.pdf", "То же в размере A5 — два экземпляра на листе"),
     ("02_karta_utra.pdf",        "Карта утра — на месяц (по одной на каждого мальчика)"),
