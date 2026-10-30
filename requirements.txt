@@ -1,0 +1,7 @@
+# Только для сборки (сама страница — один HTML-файл без зависимостей):
+#   python3 build_site.py   — нужен лишь стандартный Python
+#   python3 make_pack.py    — Pillow (иконки)
+#   python3 build_print.py  — reportlab + segno (PDF), DejaVu с кириллицей
+Pillow>=10.0
+reportlab>=4.0
+segno>=1.5

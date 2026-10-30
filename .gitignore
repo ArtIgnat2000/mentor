@@ -1,0 +1,5 @@
+# архив комплекта собирается make_pack.py и не нужен в репозитории
+nastavnik_pack.zip
+__pycache__/
+*.pyc
+.DS_Store
