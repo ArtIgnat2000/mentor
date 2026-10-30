@@ -977,6 +977,281 @@ def memo_mom(c):
 
 
 
+# ------------------------------------------------------------------ 10. дневник силы
+DIARY_COLS = [
+    ("День", 9),
+    ("Душ,\nзарядка", 19),
+    ("Турник,\nповторы", 22),
+    ("Трени-\nровка", 17),
+    ("Форте-\nпиано, мин.", 21),
+    ("Доброе\nдело", 17),
+    ("Отбой\nвовремя", 17),
+    ("Заметка: что было трудно", 39),
+]
+CHECK_COLS = (1, 3, 5, 6)          # колонки с галочкой
+WEEKS = [(1, 7), (8, 14), (15, 21), (22, 28), (29, 31)]
+
+
+def _col_title(c, x, w, y_center, title, box_h):
+    """Заголовок колонки: до двух строк, блок выровнен по центру шапки."""
+    parts = title.split("\n")[:2]
+    lead = 6.6
+    if len(parts) == 1:
+        base = y_center - 2.2
+    else:
+        base = y_center + lead / 2 - 2.2
+    for i, part in enumerate(parts):
+        first = i == 0
+        c.setFont(BOLD if first else BODY, 6.5 if first else 5.6)
+        c.setFillColor(ACCENT if first else MUTED)
+        c.drawCentredString(x + w / 2, base - i * lead, part)
+
+
+def daily_diary(c):
+    """«Дневник силы»: отметка за каждый день + итоги недели и месяца."""
+    top = page_header(c, "Дневник силы · за каждый день", "заполняет сам ребёнок · месяц")
+    f = Flow(c, M, A4W - M, top)
+
+    f.para("Дневник силы", size=17, leading=20, color=ACCENT, font=SERIF_BOLD,
+           space_after=1)
+    f.para("Отметка — галочка, числа — числом. Планку ставит не взрослый, а вчерашний ты. "
+           "День с ритмом — когда отмечены все четыре клетки.", size=8.4,
+           color=MUTED, space_after=6)
+
+    y0 = f.y
+    field_line(c, f.x, y0 - 8, f.x + 92 * MM, "Имя:")
+    field_line(c, f.x + 98 * MM, y0 - 8, f.right, "Месяц / год:")
+    f.y = y0 - 16
+
+    widths = [w * MM for _, w in DIARY_COLS]
+    k = f.w / sum(widths)
+    widths = [w * k for w in widths]
+
+    bottom = 26 * MM                 # низ таблицы / блока итогов
+    head_h = 13.5 * MM
+    sum_h = 7.6 * MM
+    n_rows = 31
+    month_h = 13.5 * MM
+    gap = 5 * MM
+
+    space = f.y - bottom - head_h - sum_h * (len(WEEKS) - 1) - gap - month_h
+    row_h = min(space / n_rows, 6.0 * MM)
+    if row_h < 4.4 * MM:
+        raise SystemExit(f"дневник не влезает: строка {row_h / MM:.1f} мм")
+    print(f"  дневник: строка {row_h / MM:.2f} мм")
+
+    table_top = f.y
+    panel(c, f.x, table_top - head_h, f.w, head_h, fill=TINT, stroke=LINE, radius=0)
+    xx = f.x
+    for (title, _), w in zip(DIARY_COLS, widths):
+        _col_title(c, xx, w, table_top - head_h / 2, title, head_h)
+        xx += w
+
+    y = table_top - head_h
+    day = 1
+    for week_no, (d_from, d_to) in enumerate(WEEKS, 1):
+        for _ in range(d_to - d_from + 1):
+            y_next = y - row_h
+            if day % 2 == 0:
+                c.setFillColor(CREAM)
+                c.rect(f.x, y_next, f.w, row_h, stroke=0, fill=1)
+            c.setFont(BODY, 6.6)
+            c.setFillColor(INK if day % 7 == 0 else MUTED)
+            c.drawCentredString(f.x + widths[0] / 2, y_next + row_h / 2 - 2.3, str(day))
+            box = min(4.1 * MM, row_h - 1.8 * MM)
+            xx = f.x
+            for i, w in enumerate(widths):
+                if i in CHECK_COLS:
+                    c.setStrokeColor(DASH)
+                    c.setLineWidth(0.6)
+                    c.rect(xx + w / 2 - box / 2, y_next + (row_h - box) / 2,
+                           box, box, stroke=1, fill=0)
+                xx += w
+            c.setStrokeColor(LINE_SOFT)
+            c.setLineWidth(0.5)
+            c.line(f.x, y_next, f.right, y_next)
+            y = y_next
+            day += 1
+
+        if week_no < len(WEEKS):          # у последней недели итог входит в месяц
+            yy = y - sum_h
+            panel(c, f.x, yy, f.w, sum_h, fill=GOLD_BG, stroke=LINE, radius=0)
+            label = f"Итог недели {week_no}"
+            c.setFont(BOLD, 7.2)
+            c.setFillColor(ACCENT)
+            c.drawString(f.x + 4, yy + sum_h / 2 - 2.4, label)
+            c.setFont(BODY, 6.6)
+            c.setFillColor(MUTED)
+            c.drawString(f.x + 4 + c.stringWidth(label, BOLD, 7.2) + 7,
+                         yy + sum_h / 2 - 2.4,
+                         "дней с ритмом ____ из 7   ·   подтягиваний всего ____   ·   "
+                         "лучший результат ____   ·   фортепиано: ____ дней / ____ минут")
+            y = yy
+
+    c.setStrokeColor(LINE)
+    c.setLineWidth(0.7)
+    c.rect(f.x, y, f.w, table_top - y, stroke=1, fill=0)
+
+    # итог месяца
+    yb = y - gap - month_h
+    panel(c, f.x, yb, f.w, month_h, fill=TINT, stroke=LINE, radius=4)
+    c.setFillColor(GOLD)
+    c.rect(f.x, yb, 2.2, month_h, stroke=0, fill=1)
+    c.setFont(BOLD, 8)
+    c.setFillColor(ACCENT)
+    c.drawString(f.x + 8, yb + month_h - 12, "ИТОГ МЕСЯЦА")
+    c.setFont(BODY, 7)
+    c.setFillColor(INK)
+    c.drawString(f.x + 8 + c.stringWidth("ИТОГ МЕСЯЦА", BOLD, 8) + 6,
+                 yb + month_h - 12,
+                 "дней с ритмом ____ из 31   ·   подтягиваний всего ____   ·   "
+                 "личный рекорд ____   ·   фортепиано: ____ дней / ____ минут")
+    c.setFont(BODY, 6.4)
+    c.setFillColor(MUTED)
+    c.drawString(f.x + 8, yb + 5,
+                 "Пустая клетка — это данные, а не провал: за срыв и за эмоции ничего "
+                 "не вычитается. Своё дело (IT, проект) — запиши в заметку словом.")
+
+    page_footer(c, "Отметки ставит сам ребёнок. Взрослый спрашивает «как прошло?», "
+                   "а не «сделал?».", right=f"версия {VERSION}")
+    c.showPage()
+
+
+# ------------------------------------------------------------------ 11. итоги недели
+DAYS_SHORT = ("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс")
+
+REWARD_RULES = [
+    ("5 дней из 7", "выбираешь ты, куда идём вдвоём в выходные"),
+    ("меньше 5", "поощрения нет — и нет упрёков: смотрим, что мешало"),
+    ("болел, дорога", "эти дни не считаются, порог пересчитываем вместе"),
+]
+
+
+def weekly_results(c):
+    """Карточка разговора о неделе: цифры ребёнка и правило поощрения."""
+    two_up(c, _weekly_card)
+    c.showPage()
+
+
+def _weekly_card(c, W, H, m=11 * MM):
+    top = page_header(c, "Итоги недели", "разговор на 5 минут, вместе с ребёнком",
+                      width=W, height=H, m=m)
+    x, right = m, W - m
+    width = right - x
+    ROWS_GAP, LINE_GAP = 32, 24        # шаг строк с цифрами и линий разговора
+
+    c.setFont(SERIF_BOLD, 25)
+    c.setFillColor(ACCENT)
+    c.drawString(x, top - 19, "Итоги недели")
+    c.setFont(BODY, 10.4)
+    c.setFillColor(MUTED)
+    c.drawString(x, top - 35, "Цифры здесь — его собственные: с братом они "
+                              "не сравниваются никогда.")
+    y = top - 54
+
+    field_line(c, x, y, x + 46 * MM, "Имя:", size=10.4)
+    field_line(c, x + 53 * MM, y, right, "Неделя № / даты:", size=10.4)
+    y -= 28
+
+    # неделя целиком
+    c.setFont(BOLD, 10)
+    c.setFillColor(ACCENT2)
+    c.drawString(x, y, "НЕДЕЛЯ ЦЕЛИКОМ — ГДЕ БЫЛ РИТМ")
+    y -= 11
+    cell_w = width / 7
+    cell_bottom, cell_h = y - 38, 38
+    for i, day in enumerate(DAYS_SHORT):
+        cx = x + i * cell_w
+        panel(c, cx + 1.5, cell_bottom, cell_w - 3, cell_h, fill=CREAM,
+              stroke=LINE, radius=3)
+        c.setFont(BODY, 8.4)
+        c.setFillColor(MUTED)
+        c.drawCentredString(cx + cell_w / 2, cell_bottom + cell_h - 13, day)
+        c.setStrokeColor(DASH)
+        c.setLineWidth(0.7)
+        box = 13
+        c.rect(cx + cell_w / 2 - box / 2, cell_bottom + 7, box, box, stroke=1, fill=0)
+    y = cell_bottom - 14
+    c.setFont(BODY, 8.4)
+    c.setFillColor(MUTED)
+    c.drawString(x, y, "Ритм — когда в «Дневнике силы» отмечены все четыре клетки.")
+    y -= 24
+
+    # цифры недели
+    for name, blank in (("Дней с ритмом", "_____ из _____"),
+                        ("Турник: было → стало", "_____ → _____     рекорд _____"),
+                        ("Фортепиано", "_____ дней, _____ минут")):
+        c.setFont(BOLD, 11.6)
+        c.setFillColor(ACCENT)
+        c.drawString(x, y, name)
+        c.setFont(BODY, 11.2)
+        c.setFillColor(MUTED)
+        c.drawString(x + 58 * MM, y, blank)
+        y -= ROWS_GAP
+    y -= 4
+
+    # разговор
+    c.setFont(BOLD, 10)
+    c.setFillColor(ACCENT2)
+    c.drawString(x, y, "РАЗГОВОР")
+    y -= 19
+    for label in ("Что было труднее всего и как справился:",
+                  "Что помогло:",
+                  "На следующей неделе попробую:"):
+        c.setFont(BOLD, 11.6)
+        c.setFillColor(ACCENT)
+        c.drawString(x, y, label)
+        y -= 16
+        for _ in range(2):
+            dotted(c, x + 3, right, y, LINE, 0.8)
+            y -= LINE_GAP
+        y -= 5
+
+    # договорённость о поощрении
+    box_bottom = m + 27
+    box_h = y - 3 - box_bottom
+    panel(c, x, box_bottom, width, box_h, fill=GOLD_BG, stroke=LINE, radius=4)
+    c.setFillColor(GOLD)
+    c.rect(x, box_bottom, 2.8, box_h, stroke=0, fill=1)
+
+    bi = box_bottom + box_h                     # верх блока, дальше идём вниз
+    c.setFont(BOLD, 11.6)
+    c.setFillColor(ACCENT)
+    c.drawString(x + 13, bi - 20, "Договорённость о поощрении")
+
+    rule_left = x + 13
+    rule_val = x + 50 * MM
+    ri = bi - 36
+    for cond, what in REWARD_RULES:
+        c.setFont(BOLD, 9.8)
+        c.setFillColor(GOLD)
+        c.drawString(rule_left, ri - 8, cond)
+        draw_wrapped(c, what, rule_val, ri, right - 14 - rule_val, 9.6, 12,
+                     BODY, BODY, INK)
+        ri -= 34
+
+    c.setStrokeColor(LINE)
+    c.setLineWidth(0.6)
+    c.line(rule_left, ri + 8, right - 14, ri + 8)
+
+    c.setFont(BODY, 9)
+    c.setFillColor(MUTED)
+    c.drawString(rule_left, ri - 8, "Не отменяется за плохой день и не уменьшается "
+                                    "за срыв: эмоции вне счёта.")
+    c.drawString(rule_left, ri - 22, "Поощрение — время вместе, а не покупка. "
+                                     "Итог подписываем вдвоём.")
+
+    field_line(c, rule_left, ri - 47, right - 14, "Порог на эту неделю:", size=9.4)
+    field_line(c, rule_left, ri - 70, right - 14,
+               "Поощрение, о котором договорились:", size=9.4)
+    if ri - 70 < box_bottom + 8:
+        raise SystemExit("карточка недели: блок правил не влезает")
+
+    field_line(c, x, m + 12, x + 60 * MM, "Ребёнок:", size=9.6)
+    field_line(c, x + 70 * MM, m + 12, right, "Взрослый:", size=9.6)
+    page_footer(c, "Считается по отметкам «Дневника силы».", width=W, m=m)
+
+
 # ------------------------------------------------------------------ обложка
 PACK_CONTENTS = [
     ("Плакат на холодильник", "пять правил, стоп-лист, три фразы-выручалочки", "1 стр. A4"),
@@ -988,6 +1263,8 @@ PACK_CONTENTS = [
     ("Проверка «я не сбился»", "семь вопросов раз в две недели", "1 лист = 2 бланка A5"),
     ("Памятка папе", "зона папы, сверка, момент вспышки", "1 стр. A4"),
     ("Памятка маме", "что говорить и чего не говорить про ревность", "1 стр. A4"),
+    ("Дневник силы", "отметка за каждый день + итоги недели и месяца", "1 стр. A4 на ребёнка"),
+    ("Итоги недели", "разговор на 5 минут и договорённость о поощрении", "1 лист = 2 карточки A5"),
 ]
 
 
@@ -1006,17 +1283,17 @@ def cover(c):
         row_h = 34
         c.setFont(SERIF_BOLD, 13)
         c.setFillColor(GOLD)
-        c.drawString(f.x, y - 13, f"{i}")
+        c.drawRightString(f.x + 15, y - 13, f"{i}")
         c.setFont(BOLD, 10.4)
         c.setFillColor(ACCENT)
-        c.drawString(f.x + 18, y - 10, name)
-        draw_wrapped(c, what, f.x + 18, y - 15, f.w - 18, 8.4, 10.4, BODY, BODY, MUTED)
+        c.drawString(f.x + 24, y - 10, name)
+        draw_wrapped(c, what, f.x + 24, y - 15, f.w - 24, 8.4, 10.4, BODY, BODY, MUTED)
         c.setFont(BODY, 7.6)
         c.setFillColor(MUTED)
         c.drawRightString(f.right, y - 10, how)
         y -= row_h
         if i < len(PACK_CONTENTS):
-            hline(c, f.x + 18, f.right, y + 8, LINE_SOFT, 0.6)
+            hline(c, f.x + 24, f.right, y + 8, LINE_SOFT, 0.6)
 
     f.y = y - 12
     kv_panel(c, f, [
@@ -1028,8 +1305,8 @@ def cover(c):
 
     f.bullets([
         "**Плакат** — на холодильник, туда, где смотришь каждый день.",
-        "**Бланки** — по одному комплекту в месяц: карта утра и копилка на каждого мальчика, "
-        "журнал и проверка — у наставника.",
+        "**Бланки** — по одному комплекту в месяц на каждого мальчика: карта утра, "
+        "копилка и дневник силы; журнал и проверка — у наставника.",
         "**Памятки** — отдать лично: папе рядом с плакатом, маме со словами "
         "«это шпаргалка, а не оценка».",
     ], size=8.6, marker_color=ACCENT2, gap=3)
@@ -1059,6 +1336,8 @@ DOCUMENTS = [
     ("07_proverka_ya_sbilsya.pdf", "7 вопросов «я не сбился» (2 шт.)", A4H, A4W, self_check),
     ("08_pamyatka_pape.pdf", "памятка папе", A4W, A4H, memo_dad),
     ("09_pamyatka_mame.pdf", "памятка маме", A4W, A4H, memo_mom),
+    ("10_dnevnik_sily.pdf", "дневник силы на месяц", A4W, A4H, daily_diary),
+    ("11_itogi_nedeli.pdf", "итоги недели (2 шт. на листе)", A4H, A4W, weekly_results),
 ]
 
 
@@ -1122,6 +1401,8 @@ PDF продублированы в `docs/print/` — их можно откры
 | `07_proverka_ya_sbilsya.pdf` | 7 вопросов, 2 бланка на листе | 1 лист на месяц | A4, разрезать: одна проверка на две недели |
 | `08_pamyatka_pape.pdf` | памятка папе | 1 | A4. Повесить рядом с плакатом |
 | `09_pamyatka_mame.pdf` | памятка маме | 1 | A4. Отдать лично и сказать: «это шпаргалка, а не оценка» |
+| `10_dnevnik_sily.pdf` | дневник силы на месяц: отметка за каждый день + итоги недель и месяца | по 1 на мальчика в месяц | A4. Имя вписать, отметки ставит сам ребёнок |
+| `11_itogi_nedeli.pdf` | итоги недели: разговор на 5 минут и договорённость о поощрении, 2 шт. на листе | 1 лист на мальчика в неделю | A4, разрезать: карточка на неделю каждому |
 | `qr_nastavnik.png` | QR на свод | сколько нужно | Наклейка на папку, холодильник, бланки |
 
 ## Настройки принтера
