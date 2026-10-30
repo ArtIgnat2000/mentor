@@ -28,6 +28,7 @@
 ## 2. Техническая архитектура
 
 ```
+.github/workflows/pages.yml   деплой docs/ на GitHub Pages (источник: GitHub Actions)
 *.md                   источник правды (контент)
 build_site.py          markdown → docs/index.html + копия nastavnik.html
 build_print.py         письменные материалы → print/*.pdf и docs/print/*.pdf
@@ -73,10 +74,14 @@ python3 build_print.py && python3 build_site.py && python3 make_pack.py
 
 - ✅ Контент (4 документа) готов.
 - ✅ `docs/index.html` собирается, 49 разделов, поиск, deep links, работает без JS.
-- ✅ Всё готово к публикации на GitHub Pages: папка `docs/` + `.nojekyll` + инструкция в `README.md`.
-  Включение Pages — одно действие владельца репозитория (Settings → Pages → `main` + `/docs`);
-  API-токену в песочнице это право не выдано, поэтому галочку ставит человек.
-  Ожидаемый адрес: **https://artignat2000.github.io/mentor/**
+- ✅ Публикация на GitHub Pages через **GitHub Actions** (`.github/workflows/pages.yml`,
+  источник в настройках: Pages → Source: GitHub Actions). Каждый пуш в `main` пересобирает
+  и выкладывает `docs/`; CI дополнительно проверяет, что `docs/index.html` не отстал от markdown.
+  Адрес: **https://artignat2000.github.io/mentor/**
+
+  Почему Actions, а не «Deploy from a branch»: при источнике `/ (root)` GitHub Pages показывал
+  README вместо свода, а папка `/docs` требовала ручной настройки. Теперь публикуется ровно
+  то, что лежит в `docs/`, одной кнопкой.
 - ✅ Печатные материалы: плакат на холодильник (A4 и A5×2), карта утра, карта паузы, шкала 1–5,
   журнал наставника, копилка добрых дел, проверка «я не сбился», памятки папе и маме + QR-код на свод.
 - ✅ Ссылки на PDF есть на главном экране сайта (раздел «Печатные материалы»).
@@ -133,6 +138,7 @@ requirements.txt                 — что нужно для сборки
 docs/index.html                  — опубликованная страница
 docs/manifest.webmanifest, docs/sw.js, docs/icon-*.png, docs/.nojekyll
 docs/print/*.pdf                 — печатные материалы, доступные с телефона
+.github/workflows/pages.yml      — сборка/деплой GitHub Pages
 print/*.pdf, print/qr_nastavnik.png, print/README.md
 nastavnik.html                   — та же страница одним файлом (для «Файлов» на iPhone)
 ```
