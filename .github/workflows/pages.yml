@@ -73,3 +73,15 @@ jobs:
           echo "::error::по адресу $URL нет страницы свода"
           head -c 400 /tmp/site.html || true
           exit 1
+
+      - name: Проверить закрытый раздел «Родителям»
+        run: |
+          URL="${{ steps.deployment.outputs.page_url }}semya.html"
+          code=$(curl -sL -o /tmp/semya.html -w "%{http_code}" "$URL" || echo 000)
+          echo "код $code, $(wc -c < /tmp/semya.html) байт"
+          test "$code" = "200" || { echo "::error::закрытый раздел не отдаётся"; exit 1; }
+          grep -q 'id="gate"' /tmp/semya.html || { echo "::error::нет формы входа"; exit 1; }
+          if grep -q 'Папе и маме' /tmp/semya.html; then
+            echo "::error::в опубликованной странице открытый текст"; exit 1
+          fi
+          echo "OK: раздел закрыт, открытого текста нет"

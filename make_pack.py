@@ -97,6 +97,10 @@ self.addEventListener('fetch', e => {
 """
 
 
+# закрытый раздел в архив не кладём: он не для передачи
+SKIP_FROM_PACK = {"semya.html"}
+
+
 def cache_version() -> str:
     index = SITE / "index.html"
     if not index.exists():
@@ -132,7 +136,7 @@ def main():
             if not d.exists():
                 continue
             for f in sorted(d.rglob("*")):
-                if f.is_file():
+                if f.is_file() and f.name not in SKIP_FROM_PACK:
                     z.write(f, f"{folder}/{f.relative_to(d)}")
     print("site files:", sorted(p.name for p in SITE.iterdir()))
     print("cache version:", version)
