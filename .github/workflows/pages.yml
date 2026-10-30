@@ -27,14 +27,14 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Проверить, что страница собрана из markdown
+      # достаточно поправить markdown и запушить: страница соберётся здесь,
+      # версия офлайн-кэша в sw.js обновится автоматически (Pillow не нужен)
+      - name: Пересобрать страницу из markdown
+        run: python3 build_site.py
+
+      - name: Что изменилось после пересборки
         run: |
-          python3 build_site.py
-          if ! git diff --quiet -- docs/index.html; then
-            echo "::error::docs/index.html устарел. Локально: python3 build_site.py && git commit docs/index.html"
-            git diff --stat -- docs/index.html
-            exit 1
-          fi
+          git --no-pager diff --stat -- docs
           test -f docs/index.html
 
       - uses: actions/configure-pages@v5

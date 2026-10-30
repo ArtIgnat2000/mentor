@@ -15,6 +15,7 @@ JS остаётся только как улучшение: поиск + авт�
 import re
 import html
 import json
+import hashlib
 import shutil
 from pathlib import Path
 
@@ -176,6 +177,23 @@ def slug(title: str, prefix: str, idx: int, used: set) -> str:
 def short_title(title: str) -> str:
     t = re.sub(r"^(Раздел|П)\s*", lambda m: "", title)
     return re.sub(r"^\d+\.\s*", "", t)
+
+
+def refresh_sw_version(page: str):
+    """Переписывает версию кэша в docs/sw.js под текущее содержимое страницы.
+
+    Сам файл создаёт make_pack.py; здесь только поддерживается актуальная версия,
+    чтобы сборку можно было повторять без Pillow (CI собирает страницу из markdown).
+    """
+    sw = OUT / "sw.js"
+    if not sw.exists():
+        return None
+    version = "nastavnik-" + hashlib.sha256(page.encode("utf-8")).hexdigest()[:10]
+    text = sw.read_text(encoding="utf-8")
+    new = re.sub(r"const CACHE = '[^']*';", f"const CACHE = '{version}';", text, count=1)
+    if new != text:
+        sw.write_text(new, encoding="utf-8")
+    return version if new != text else None
 
 
 # ------------------------------------------------------------------ build
@@ -550,7 +568,11 @@ __PANES__
     shutil.copy(OUT / "index.html", ROOT / "nastavnik.html")
     # .nojekyll: без него GitHub Pages прогоняет файлы через Jekyll
     (OUT / ".nojekyll").write_text("", encoding="utf-8")
-    print(f"ok: docs/index.html = {len(page)} bytes, разделов: {len(search_index)}")
+    # версия офлайн-кэша: обновляется здесь, чтобы страницу можно было пересобрать
+    # без Pillow (например, в GitHub Actions) и телефон не показывал старую копию
+    version = refresh_sw_version(page)
+    extra = f", кэш {version}" if version else ""
+    print(f"ok: docs/index.html = {len(page)} bytes, разделов: {len(search_index)}{extra}")
 
 
 if __name__ == "__main__":
