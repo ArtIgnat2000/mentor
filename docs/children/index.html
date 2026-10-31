@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<meta name="description" content="Детский раздел: правила, подсказки на трудный день, ритм дня и материалы для печати.">
+<title>Мой раздел · Детям</title>
+<link rel="stylesheet" href="./static/app.css">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./static/icons/icon-180.png">
+</head>
+<body class="children">
+<a class="skip-link" href="#main">К содержанию</a>
+<header class="top"><a class="brand" href="./">Детям</a><nav aria-label="Разделы"><a href="./">Главная</a><a href="../parents/">Родителям</a><a href="../family/">Семья</a></nav></header>
+<main class="wrap" id="main">
+
+<section class="hero hero-kids">
+  <div class="hero-text"><p class="eyebrow">Твой раздел</p><h1>Мой раздел</h1><p class="lead">Привет! Здесь твои правила, дела и подсказки на трудный день. Можно читать с телефона, печатать листы и отмечать своё.</p></div>
+  <img class="hero-art" src="./static/kids-hero.svg" alt="" width="220" height="160">
+</section>
+<div class="quick quick-kids">
+  <a class="quick-card" href="./nashi-pravila.html"><span aria-hidden="true">📏</span><strong>Мои правила</strong></a>
+  <a class="quick-card" href="./esli-trudno.html"><span aria-hidden="true">🌤️</span><strong>Если трудно</strong></a>
+  <a class="quick-card" href="./moy-den.html"><span aria-hidden="true">🧭</span><strong>Мой день</strong></a>
+  <a class="quick-card" href="./moi-listy.html"><span aria-hidden="true">✏️</span><strong>Мои листы</strong></a>
+</div>
+
+<div class="search-box no-print">
+  <label class="sr-only" for="site-search">Поиск по разделу</label>
+  <input id="site-search" type="search" data-search data-search-target=".search-item" placeholder="Найти: правила, пауза, турник, добрые дела" autocomplete="off">
+  <button class="search-clear" type="button" data-search-clear aria-label="Очистить поиск">×</button>
+</div>
+<p class="no-results" data-no-results hidden>Ничего не нашлось. Попробуйте другое слово: «истерика», «турник», «добрые дела».</p>
+
+
+<div class="chips no-print" role="group" aria-label="Фильтр по темам"><button class="chip is-active" type="button" data-filter="all">Все</button><button class="chip" type="button" data-filter="Правила">Правила</button><button class="chip" type="button" data-filter="Когда трудно">Когда трудно</button><button class="chip" type="button" data-filter="Мой день">Мой день</button><button class="chip" type="button" data-filter="Мои материалы">Мои материалы</button></div>
+<section class="group" data-group-section="Правила" id="rules"><h2>Правила</h2><div class="cards"><a class="card search-item " href="./nashi-pravila.html" data-group="Правила" data-keywords="правила можно нельзя спокойно правда помощь"><span class="card-icon" aria-hidden="true">📏</span><span class="tag">Главное</span><h3>Наши правила</h3><p>Что можно, что нельзя и как исправить ошибку.</p></a></div></section>
+<section class="group" data-group-section="Когда трудно" id="group-2"><h2>Когда трудно</h2><div class="cards"><a class="card search-item " href="./esli-trudno.html" data-group="Когда трудно" data-keywords="злость истерика ссора ошибка не получается пауза помощь"><span class="card-icon" aria-hidden="true">🌤️</span><span class="tag">Подсказки</span><h3>Если трудно</h3><p>Злость, ссора, ошибка, отказ от дела и просьба о помощи.</p></a></div></section>
+<section class="group" data-group-section="Мой день" id="group-3"><h2>Мой день</h2><div class="cards"><a class="card search-item " href="./moy-den.html" data-group="Мой день" data-keywords="утро день зарядка турник отбой минимум"><span class="card-icon" aria-hidden="true">🧭</span><span class="tag">Ритм</span><h3>Мой день</h3><p>Утро, дела, отдых и минимум в трудный день.</p></a></div></section>
+<section class="group" data-group-section="Мои материалы" id="group-4"><h2>Мои материалы</h2><div class="cards"><a class="card search-item " href="./moi-listy.html" data-group="Мои материалы" data-keywords="листы бланки печатать добрые дела дневник силы пауза"><span class="card-icon" aria-hidden="true">✏️</span><span class="tag">Скачать</span><h3>Мои листы и материалы</h3><p>Все детские правила и бланки в одном месте.</p></a></div></section>
+</main>
+<footer class="foot no-print"><a href="../">Наставник · полный свод</a></footer>
+<script src="./static/app.js" defer></script>
+</body>
+</html>

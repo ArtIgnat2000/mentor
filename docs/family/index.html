@@ -11,10 +11,17 @@
 <link rel="apple-touch-icon" href="./static/icons/icon-180.png">
 </head>
 <body class="family">
-<header class="top"><a class="brand" href="./">Семья</a><nav><a href="./">Главная</a><a href="../parents/">Родителям</a><a href="../">Наставник</a></nav></header>
-<main class="wrap">
-<h1>Семейный справочник</h1><p class='lead'>Общие правила и материалы, которые можно показывать детям. Без оценок, рейтингов и сравнения.</p><div class='cards'><a class="card" href="./nashi-pravila.html"><h2>Наши правила</h2><p>Правила для детей: что можно и что нельзя.</p></a><a class="card" href="./kak-polzovatsya.html"><h2>Как пользоваться справочником</h2><p>Короткая инструкция для семьи.</p></a></div>
+<a class="skip-link" href="#main">К содержанию</a>
+<header class="top"><a class="brand" href="./">Семья</a><nav aria-label="Разделы"><a href="./">Главная</a><a href="../children/">Детям</a><a href="../parents/">Родителям</a></nav></header>
+<main class="wrap" id="main">
+
+<section class="hero"><h1>Семейный справочник</h1><p class="lead">Общие правила и материалы, которые можно показывать детям. Без оценок, рейтингов и сравнения.</p></section>
+<div class="portal"><a class="portal-card" href="../children/"><span aria-hidden="true">🧒</span><strong>Детский раздел</strong><small>Правила, подсказки и листы</small></a><a class="portal-card" href="../parents/"><span aria-hidden="true">👪</span><strong>Родителям</strong><small>Правила, ситуации и формы</small></a></div>
+
+<section class="group" data-group-section="Начало" id="group-1"><h2>Начало</h2><div class="cards"><a class="card search-item " href="./kak-polzovatsya.html" data-group="Начало" data-keywords=""><span class="card-icon" aria-hidden="true">🧭</span><h3>Как пользоваться справочником</h3><p>Короткая инструкция для семьи.</p></a></div></section>
+<section class="group" data-group-section="Правила" id="rules"><h2>Правила</h2><div class="cards"><a class="card search-item " href="./nashi-pravila.html" data-group="Правила" data-keywords=""><span class="card-icon" aria-hidden="true">📏</span><h3>Наши правила</h3><p>Правила для детей: что можно и что нельзя.</p></a></div></section>
 </main>
+<footer class="foot no-print"><a href="../">Наставник · полный свод</a></footer>
 <script src="./static/app.js" defer></script>
 </body>
 </html>

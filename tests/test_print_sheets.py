@@ -76,10 +76,11 @@ class UsefulDeedsTests(unittest.TestCase):
                                for name, _, _, _, _ in bp.DOCUMENTS
                                if not name.startswith("01b"))
             self.assertEqual(pdf_page_count(pack), expected)
-            self.assertEqual(expected, 17)
+            self.assertEqual(expected, 18)
             readme = (bp.OUT / "README.md").read_text(encoding="utf-8")
             self.assertIn("12_listy_poleznyh_del.pdf", readme)
-            self.assertIn("17 страниц", readme)
+            self.assertIn("17_ezhednevny_list_del.pdf", readme)
+            self.assertIn("18 страниц", readme)
             rules = (bp.OUT / "16_pravila_semyi_3xA4.pdf").read_bytes()
             self.assertEqual(pdf_page_count(rules), 3)
             self.assertEqual(rules, (bp.DOCS_PRINT / "16_pravila_semyi_3xA4.pdf").read_bytes())

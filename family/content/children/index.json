@@ -1,0 +1,178 @@
+{
+  "title": "Детям",
+  "pages": [
+    {
+      "slug": "nashi-pravila",
+      "title": "Наши правила",
+      "summary": "Что можно, что нельзя и как исправить ошибку.",
+      "source": "generated:children",
+      "group": "Правила",
+      "icon": "📏",
+      "tag": "Главное",
+      "keywords": [
+        "правила",
+        "можно",
+        "нельзя",
+        "спокойно",
+        "правда",
+        "помощь"
+      ],
+      "resources": [
+        {
+          "label": "Правила детям A4",
+          "href": "../print/13_pravila_detey_A4.pdf",
+          "note": "Распечатать и повесить",
+          "kind": "PDF"
+        },
+        {
+          "label": "Правила на телефон",
+          "href": "../print/13m_pravila_detey_mobile.pdf",
+          "note": "Крупный мобильный PDF",
+          "kind": "PDF"
+        }
+      ]
+    },
+    {
+      "slug": "esli-trudno",
+      "title": "Если трудно",
+      "summary": "Злость, ссора, ошибка, отказ от дела и просьба о помощи.",
+      "source": "esli-trudno.md",
+      "group": "Когда трудно",
+      "icon": "🌤️",
+      "tag": "Подсказки",
+      "keywords": [
+        "злость",
+        "истерика",
+        "ссора",
+        "ошибка",
+        "не получается",
+        "пауза",
+        "помощь"
+      ],
+      "resources": [
+        {
+          "label": "Моя карта паузы",
+          "href": "../print/03_karta_pauzy.pdf",
+          "note": "Две карточки на листе",
+          "kind": "PDF"
+        },
+        {
+          "label": "Шкала 1–5",
+          "href": "../print/04_shkala_1_5.pdf",
+          "note": "Заметить, что закипаю",
+          "kind": "PDF"
+        }
+      ]
+    },
+    {
+      "slug": "moy-den",
+      "title": "Мой день",
+      "summary": "Утро, дела, отдых и минимум в трудный день.",
+      "source": "moy-den.md",
+      "group": "Мой день",
+      "icon": "🧭",
+      "tag": "Ритм",
+      "keywords": [
+        "утро",
+        "день",
+        "зарядка",
+        "турник",
+        "отбой",
+        "минимум"
+      ],
+      "resources": [
+        {
+          "label": "Лист на сегодня",
+          "href": "../print/17_ezhednevny_list_del.pdf",
+          "note": "Один день, 2–3 дела",
+          "kind": "PDF"
+        },
+        {
+          "label": "Карта утра",
+          "href": "../print/02_karta_utra.pdf",
+          "note": "Порядок утра",
+          "kind": "PDF"
+        },
+        {
+          "label": "Полезные дела: неделя и месяц",
+          "href": "../print/12_listy_poleznyh_del.pdf",
+          "note": "Две страницы A4",
+          "kind": "PDF"
+        }
+      ]
+    },
+    {
+      "slug": "moi-listy",
+      "title": "Мои листы и материалы",
+      "summary": "Все детские правила и бланки в одном месте.",
+      "source": "moi-listy.md",
+      "group": "Мои материалы",
+      "icon": "✏️",
+      "tag": "Скачать",
+      "keywords": [
+        "листы",
+        "бланки",
+        "печатать",
+        "добрые дела",
+        "дневник силы",
+        "пауза"
+      ],
+      "resources": [
+        {
+          "label": "Правила детям A4",
+          "href": "../print/13_pravila_detey_A4.pdf",
+          "note": "",
+          "kind": "PDF"
+        },
+        {
+          "label": "Правила на телефон",
+          "href": "../print/13m_pravila_detey_mobile.pdf",
+          "note": "",
+          "kind": "PDF"
+        },
+        {
+          "label": "Лист на сегодня",
+          "href": "../print/17_ezhednevny_list_del.pdf",
+          "note": "",
+          "kind": "PDF"
+        },
+        {
+          "label": "Полезные дела: неделя и месяц",
+          "href": "../print/12_listy_poleznyh_del.pdf",
+          "note": "",
+          "kind": "PDF"
+        },
+        {
+          "label": "Копилка добрых дел",
+          "href": "../print/06_kopilka_dobryh_del.pdf",
+          "note": "",
+          "kind": "PDF"
+        },
+        {
+          "label": "Дневник силы",
+          "href": "../print/10_dnevnik_sily.pdf",
+          "note": "",
+          "kind": "PDF"
+        },
+        {
+          "label": "Карта утра",
+          "href": "../print/02_karta_utra.pdf",
+          "note": "",
+          "kind": "PDF"
+        },
+        {
+          "label": "Карта паузы",
+          "href": "../print/03_karta_pauzy.pdf",
+          "note": "",
+          "kind": "PDF"
+        },
+        {
+          "label": "Шкала 1–5",
+          "href": "../print/04_shkala_1_5.pdf",
+          "note": "",
+          "kind": "PDF"
+        }
+      ]
+    }
+  ]
+}
