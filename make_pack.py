@@ -69,7 +69,8 @@ SW = """/* Офлайн-кэш карманного свода.
 const CACHE = '__CACHE__';
 const FILES = [
   './', './index.html', './manifest.webmanifest',
-  './icon-180.png', './icon-192.png', './icon-512.png'
+  './icon-180.png', './icon-192.png', './icon-512.png',
+  './mobile/index.html', './mobile/detyam.html', './mobile/pape.html', './mobile/mame.html'
 ];
 
 self.addEventListener('install', e => {
@@ -105,8 +106,12 @@ def cache_version() -> str:
     index = SITE / "index.html"
     if not index.exists():
         raise SystemExit("нет docs/index.html — сначала запустите: python3 build_site.py")
-    digest = hashlib.sha256(index.read_bytes()).hexdigest()[:10]
-    return f"nastavnik-{digest}"
+    digest = hashlib.sha256(index.read_bytes())
+    mobile = SITE / "mobile"
+    if mobile.exists():
+        for path in sorted(mobile.glob("*.html")):
+            digest.update(path.read_bytes())
+    return f"nastavnik-{digest.hexdigest()[:10]}"
 
 
 def main():

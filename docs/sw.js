@@ -1,9 +1,10 @@
 /* Офлайн-кэш карманного свода.
    Версия подставляется make_pack.py из хэша docs/index.html — вручную не править. */
-const CACHE = 'nastavnik-95c3e4d2c7';
+const CACHE = 'nastavnik-844dce3f07';
 const FILES = [
   './', './index.html', './manifest.webmanifest',
-  './icon-180.png', './icon-192.png', './icon-512.png'
+  './icon-180.png', './icon-192.png', './icon-512.png',
+  './mobile/index.html', './mobile/detyam.html', './mobile/pape.html', './mobile/mame.html'
 ];
 
 self.addEventListener('install', e => {

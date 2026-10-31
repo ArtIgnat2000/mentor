@@ -16,6 +16,8 @@
 """
 from io import BytesIO
 from pathlib import Path
+import html
+import re
 
 import segno
 from reportlab.lib.utils import ImageReader
@@ -30,6 +32,10 @@ from printkit import (
     A4H, A4W, A5H, A5W, DASH, MM, ACCENT, ACCENT2, BODY, BOLD, CREAM, GOLD, GOLD_BG,
     HOT, HOT_BG, INK, LINE, LINE_SOFT, MUTED, PAPER, SERIF_BOLD, TINT,
     Flow, cut_marks, dotted, draw_wrapped, hline, n_lines, panel, vline, wrap,
+)
+from family_rules import (
+    CHILDREN_RULES, ADULT_CRISIS, ADULT_REPAIR, ADULT_RED_FLAGS,
+    DAD_RULES, MOM_RULES, ROLE_META,
 )
 
 ROOT = Path(__file__).resolve().parent
@@ -1252,6 +1258,444 @@ def _weekly_card(c, W, H, m=11 * MM):
     page_footer(c, "Считается по отметкам «Дневника силы».", width=W, m=m)
 
 
+# ------------------------------------------------------------------ 12. листы полезных дел
+# Один набор пунктов для обоих листов. Зарядка и турник намеренно разделены;
+# последний пункт ребёнок выбирает сам. Это не замена «Дневнику силы» и не
+# новая система поощрений: только место для ежедневных отметок.
+# (заголовок, подсказка, ширина месячной колонки в мм, тип клетки)
+DEED_COLUMNS = [
+    ("Зарядка", ("посильный", "комплекс"), 20, "check"),
+    ("Турник", ("галочка или", "повторы"), 21, "reps"),
+    ("Созидание", ("фортепиано", "или IT"), 22, "check"),
+    ("Доброе дело", ("брату или", "родителям"), 23, "check"),
+    ("Помощь", ("по дому",), 20, "check"),
+    ("Отбой", ("вовремя",), 18, "check"),
+    ("Свой пункт", ("по желанию",), 22, "check"),
+]
+
+
+def _deeds_intro(c, weekly):
+    period = "неделя" if weekly else "месяц"
+    top = page_header(c, "Ежедневные отметки · полезные дела",
+                      f"стр. {'1' if weekly else '2'} · {period}")
+    f = Flow(c, M, A4W - M, top)
+    f.para(f"Полезные дела · {period}", size=19, leading=23,
+           color=ACCENT, font=SERIF_BOLD, space_after=3)
+    f.para("Отмечает сам ребёнок. Это личный лист, а не соревнование с братом.",
+           size=8.4, leading=10.5, color=MUTED, space_after=8)
+
+    y0 = f.y
+    field_line(c, f.x, y0 - 8, f.x + 80 * MM, "Имя:", size=8)
+    if weekly:
+        field_line(c, f.x + 88 * MM, y0 - 8, f.x + 132 * MM, "Неделя: с", size=8)
+        field_line(c, f.x + 137 * MM, y0 - 8, f.right, "по", size=8)
+    else:
+        field_line(c, f.x + 88 * MM, y0 - 8, f.right, "Месяц / год:", size=8)
+    f.y = y0 - 21
+    field_line(c, f.x, f.y - 8, f.right,
+               "Мой пункт (выбрать по желанию):", size=8)
+    f.y -= 22
+    f.para("✓ — сделал. В графе «Турник» можно записать число повторов вместо галочки. "
+           "Начните с 2–3 дел. Нагрузка посильная; при плохом самочувствии — отдых.",
+           size=7.4, leading=9.6, color=MUTED, space_after=7)
+    return f
+
+
+def _deeds_column_header(c, x, w, y_center, head_h, title, hint, weekly):
+    """Заголовок из названия и 1–2 подсказок; проверяем ширину до отрисовки."""
+    title_size, hint_size = (7.5, 6.2) if weekly else (6.7, 5.5)
+    lead = 10 if weekly else 8
+    lines = [(title, BOLD, title_size, ACCENT)]
+    lines += [(part, BODY, hint_size, MUTED) for part in hint]
+    block_h = title_size + (len(lines) - 1) * lead
+    if block_h > head_h - 6:
+        raise SystemExit(f"полезные дела: высокий заголовок «{title}»")
+    y = y_center + block_h / 2 - title_size * 0.78
+    for text, font, size, color in lines:
+        if c.stringWidth(text, font, size) > w - 6:
+            raise SystemExit(f"полезные дела: узкая колонка «{text}»")
+        c.setFont(font, size)
+        c.setFillColor(color)
+        c.drawCentredString(x + w / 2, y, text)
+        y -= lead
+
+
+def _deeds_columns(weekly, available_w):
+    day_w = (18 if weekly else 11) * MM
+    cols = [("День", ("дата",) if weekly else (), day_w / MM, "day")]
+    cols += DEED_COLUMNS
+    if weekly:
+        # Равномерные широкие клетки для всех семи дел, без пустой полосы справа.
+        habit_w = (available_w - day_w) / len(DEED_COLUMNS)
+        widths = [day_w] + [habit_w] * len(DEED_COLUMNS)
+    else:
+        cols.append(("Заметка", ("по желанию",), 25, "note"))
+        widths = [col[2] * MM for col in cols]
+        scale = available_w / sum(widths)
+        widths = [w * scale for w in widths]
+    return cols, widths
+
+
+def _deeds_table(c, f, weekly):
+    cols, widths = _deeds_columns(weekly, f.w)
+    head_h = (16 if weekly else 14) * MM
+    row_h = (18 if weekly else 5.2) * MM
+    days = 7 if weekly else 31
+    table_h = head_h + days * row_h
+    reserve = (58 if weekly else 34) * MM
+    if f.y - table_h < M + reserve:
+        raise SystemExit("полезные дела: таблица не оставляет места для итогов")
+
+    table_top = f.y
+    table_bottom = table_top - table_h
+    panel(c, f.x, table_top - head_h, f.w, head_h,
+          fill=TINT, stroke=LINE, radius=0)
+    xx = f.x
+    for (title, hint, _, _), w in zip(cols, widths):
+        _deeds_column_header(c, xx, w, table_top - head_h / 2,
+                             head_h, title, hint, weekly)
+        xx += w
+
+    # Чередуем фон строк; числа и клетки не зависят от цвета.
+    for i in range(days):
+        y_top = table_top - head_h - i * row_h
+        y_bottom = y_top - row_h
+        if i % 2:
+            c.setFillColor(CREAM)
+            c.rect(f.x, y_bottom, f.w, row_h, stroke=0, fill=1)
+        xx = f.x
+        for (_, _, _, kind), w in zip(cols, widths):
+            if kind == "day":
+                c.setFont(BOLD if weekly else BODY, 9 if weekly else 7)
+                c.setFillColor(INK if weekly else MUTED)
+                if weekly:
+                    c.drawCentredString(xx + w / 2, y_bottom + row_h / 2 + 3,
+                                        DAYS_SHORT[i])
+                    dotted(c, xx + 5 * MM, xx + w - 5 * MM,
+                           y_bottom + 9, DASH, 0.6)
+                else:
+                    c.drawCentredString(xx + w / 2, y_bottom + row_h / 2 - 2.4,
+                                        str(i + 1))
+            elif kind == "check":
+                box = (5 if weekly else 4) * MM
+                c.setStrokeColor(MUTED)
+                c.setLineWidth(0.65)
+                c.rect(xx + (w - box) / 2, y_bottom + (row_h - box) / 2,
+                       box, box, stroke=1, fill=0)
+            # Турник: свободное место для галочки ИЛИ числа, без второй клетки.
+            # Заметка: свободное место для короткой записи от руки.
+            xx += w
+        hline(c, f.x, f.right, y_bottom,
+              LINE if weekly or (i + 1) % 7 == 0 else LINE_SOFT,
+              0.8 if weekly or (i + 1) % 7 == 0 else 0.45)
+
+    xx = f.x
+    for w in widths[:-1]:
+        xx += w
+        vline(c, xx, table_bottom, table_top, LINE_SOFT, 0.45)
+    c.setStrokeColor(LINE)
+    c.setLineWidth(0.8)
+    c.rect(f.x, table_bottom, f.w, table_h, stroke=1, fill=0)
+    f.y = table_bottom
+    return f
+
+
+def _deeds_reflection(c, f, weekly):
+    top = f.y - (5 if weekly else 4) * MM
+    bottom = M + (14 if weekly else 12) * MM
+    if top - bottom < (45 if weekly else 25) * MM:
+        raise SystemExit("полезные дела: не влезает блок разговора")
+    panel(c, f.x, bottom, f.w, top - bottom, fill=TINT, stroke=LINE, radius=4)
+    c.setFillColor(GOLD)
+    c.rect(f.x, bottom, 2.2, top - bottom, stroke=0, fill=1)
+    x, right = f.x + 10, f.right - 10
+    c.setFont(BOLD, 9.5 if weekly else 8.5)
+    c.setFillColor(ACCENT)
+    c.drawString(x, top - 17, "В конце недели · поговорить, не проверять" if weekly
+                 else "В конце месяца · две строки для себя")
+    questions = (("Что у меня получилось?",
+                  "Что мешало и какая помощь нужна?",
+                  "Что продолжу на следующей неделе?") if weekly else
+                 ("Что стало получаться легче?",
+                  "Что хочу продолжить в следующем месяце?"))
+    y = top - (42 if weekly else 36)
+    for question in questions:
+        field_line(c, x, y, right, question, size=8.2 if weekly else 7.6, gap=6)
+        y -= 28 if weekly else 20
+    c.setFont(BODY, 7)
+    c.setFillColor(MUTED)
+    c.drawString(x, bottom + 10,
+                 "Можно ничего не писать: достаточно разговора." if weekly else
+                 "Если в месяце меньше 31 дня, лишние строки оставьте пустыми.")
+    page_footer(c, "Пустая клетка — не долг. Отмечаем действия, не оцениваем ребёнка.",
+                right=f"версия {VERSION}")
+
+
+def useful_deeds_week(c):
+    """Страница 1: семь крупных строк, дата каждого дня и три вопроса внизу."""
+    f = _deeds_intro(c, weekly=True)
+    _deeds_table(c, f, weekly=True)
+    _deeds_reflection(c, f, weekly=True)
+    c.showPage()
+
+
+def useful_deeds_month(c):
+    """Страница 2: все 31 дней, отдельные зарядка и турник, место для заметки."""
+    f = _deeds_intro(c, weekly=False)
+    _deeds_table(c, f, weekly=False)
+    _deeds_reflection(c, f, weekly=False)
+    c.showPage()
+
+
+def useful_deeds(c):
+    useful_deeds_week(c)
+    useful_deeds_month(c)
+
+
+def family_rules_children(c):
+    top = page_header(c, "Правила семьи · детям", "A4 · повесить на видное место")
+    f = Flow(c, M, A4W - M, top)
+    f.para("Наши правила", size=24, leading=28, color=ACCENT,
+           font=SERIF_BOLD, space_after=3)
+    f.para("Для всех детей в доме. Правило одно для всех; взрослый помогает его держать.",
+           size=9.5, leading=12, color=MUTED, space_after=10)
+
+    cols = [40 * MM, 71 * MM, 71 * MM]
+    scale = f.w / sum(cols)
+    cols = [w * scale for w in cols]
+    titles = ("Правило", "Можно", "Нельзя")
+    head_h = 11 * MM
+    size, lead, pad = 10.8, 13.8, 9
+
+    rows = []
+    for rule, can, cannot in CHILDREN_RULES:
+        lines = max(n_lines(rule, size + 0.8, cols[0] - 2 * pad, font=BOLD),
+                    n_lines(can, size, cols[1] - 2 * pad),
+                    n_lines(cannot, size, cols[2] - 2 * pad))
+        rows.append(lines * lead + 2 * pad)
+    table_h = head_h + sum(rows)
+    note_h = 18 * MM
+    if f.y - table_h - note_h < M + 12 * MM:
+        raise SystemExit("правила детям: таблица не влезает")
+
+    table_top = f.y
+    panel(c, f.x, table_top - head_h, f.w, head_h, fill=TINT, stroke=LINE, radius=0)
+    xx = f.x
+    for title, w in zip(titles, cols):
+        c.setFont(BOLD, 10)
+        c.setFillColor(ACCENT)
+        c.drawCentredString(xx + w / 2, table_top - head_h / 2 - 3, title)
+        xx += w
+
+    y = table_top - head_h
+    for i, ((rule, can, cannot), row_h) in enumerate(zip(CHILDREN_RULES, rows)):
+        y_next = y - row_h
+        if i % 2:
+            c.setFillColor(CREAM)
+            c.rect(f.x, y_next, f.w, row_h, stroke=0, fill=1)
+        xx = f.x
+        texts = (rule, can, cannot)
+        fonts = (BOLD, BODY, BODY)
+        sizes = (size + 0.8, size, size)
+        colors = (ACCENT, ACCENT2, HOT)
+        for text, font, fs, color, w in zip(texts, fonts, sizes, colors, cols):
+            draw_wrapped(c, text, xx + pad, y - pad, w - 2 * pad, fs, lead,
+                         font, BOLD, color)
+            xx += w
+        hline(c, f.x, f.right, y_next, LINE_SOFT, 0.5)
+        y = y_next
+
+    xx = f.x
+    for w in cols[:-1]:
+        xx += w
+        vline(c, xx, y, table_top, LINE_SOFT, 0.5)
+    c.setStrokeColor(LINE)
+    c.setLineWidth(0.8)
+    c.rect(f.x, y, f.w, table_top - y, stroke=1, fill=0)
+
+    f.y = y - 8 * MM
+    panel(c, f.x, f.y - note_h, f.w, note_h, fill=GOLD_BG, stroke=LINE, radius=4)
+    c.setFillColor(GOLD)
+    c.rect(f.x, f.y - note_h, 2.2, note_h, stroke=0, fill=1)
+    draw_wrapped(c, "**Пропустил — вернись.** Ошибка — повод исправить, а не повод стыдиться. "
+                    "Листы братьев не сравниваем: у каждого свой путь.",
+                 f.x + 10, f.y - 10, f.w - 20, 9.4, 12.4, BODY, BOLD, INK)
+    page_footer(c, "Правила одинаковые для всех детей. Взрослые держат их спокойно и постоянно.",
+                right=f"версия {VERSION}")
+    c.showPage()
+
+
+def _adult_rules_page(c, role, title, subtitle, data):
+    top = page_header(c, f"Правила семьи · {role}", "A4 · нужно / можно / нельзя")
+    f = Flow(c, M, A4W - M, top)
+    f.para(title, size=21, leading=25, color=ACCENT,
+           font=SERIF_BOLD, space_after=2)
+    f.para(subtitle, size=9, leading=11.5, color=MUTED, space_after=8)
+
+    sections = (
+        ("НУЖНО — держу постоянно", ACCENT2, data["need"], "—"),
+        ("МОЖНО — это не слабость", GOLD, data["can"], "—"),
+        ("НЕЛЬЗЯ — стоп-лист", HOT, data["cannot"], "✕"),
+    )
+    for title, color, items, marker in sections:
+        f.h2(title, size=11, color=color, space_before=7, space_after=3)
+        f.bullets(items, size=9.1, leading=11.6, gap=2.6,
+                  marker=marker, marker_color=color)
+
+    f.h2("При вспышке — один порядок", size=10.5, color=ACCENT, space_before=8, space_after=3)
+    f.para(ADULT_CRISIS, size=9.1, leading=11.6, color=INK, space_after=4)
+    f.h2("Короткие фразы", size=10.5, color=ACCENT, space_before=4, space_after=3)
+    f.para(data["phrases"], size=9.1, leading=11.6, color=INK, space_after=4)
+
+    f.h2("Если сорвался взрослый", size=10.5, color=ACCENT, space_before=6, space_after=3)
+    f.bullets(ADULT_REPAIR, size=9.1, leading=11.6, gap=2.6,
+              marker="—", marker_color=ACCENT2)
+    f.para(ADULT_RED_FLAGS, size=8.4, leading=10.8, color=HOT,
+           space_before=4, space_after=4)
+
+    if f.y < M + 12 * MM:
+        raise SystemExit(f"правила для {role}: лист не влезает")
+    page_footer(c, "Спорные решения взрослые обсуждают без детей. При ребёнке — одно правило.",
+                right=f"версия {VERSION}")
+    c.showPage()
+
+
+def family_rules_dad(c):
+    _adult_rules_page(c, "папе", "Правила для папы",
+                      "Папа держит режим, границы и последствия. Спокойно, последовательно, без крика.", DAD_RULES)
+
+
+def family_rules_mom(c):
+    _adult_rules_page(c, "маме", "Правила для мамы",
+                      "Мама держит тёплый контакт, личное время и свои границы. Не отменяет правила, а помогает им работать.", MOM_RULES)
+
+
+# ------------------------------------------------------------------ мобильные PDF правил
+# Узкая страница «под телефон»: крупный текст, одна колонка, автоматические
+# переносы. Это не замена A4, а второй вариант для просмотра с экрана.
+MOBILE_W, MOBILE_H = 360, 720
+MOBILE_M = 20
+
+
+def _mobile_color(color):
+    return "#" + color.hexval()[2:]
+
+
+def _mobile_md(text):
+    t = html.escape(text, quote=False)
+    return re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", t)
+
+
+def _mobile_styles():
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib.enums import TA_LEFT
+    return {
+        "title": ParagraphStyle("mtitle", fontName=SERIF_BOLD, fontSize=19, leading=23,
+                                textColor=ACCENT, spaceAfter=6, alignment=TA_LEFT),
+        "subtitle": ParagraphStyle("msub", fontName=BODY, fontSize=10.5, leading=14,
+                                   textColor=MUTED, spaceAfter=12, alignment=TA_LEFT),
+        "h2": ParagraphStyle("mh2", fontName=BOLD, fontSize=12.5, leading=16,
+                             textColor=ACCENT, spaceBefore=10, spaceAfter=5, alignment=TA_LEFT),
+        "card": ParagraphStyle("mcard", fontName=BOLD, fontSize=12, leading=15,
+                               textColor=ACCENT, spaceAfter=4, alignment=TA_LEFT),
+        "body": ParagraphStyle("mbody", fontName=BODY, fontSize=10.5, leading=14,
+                               textColor=INK, spaceAfter=5, alignment=TA_LEFT),
+        "can": ParagraphStyle("mcan", fontName=BODY, fontSize=10.5, leading=14,
+                              textColor=ACCENT2, spaceAfter=3, alignment=TA_LEFT),
+        "cannot": ParagraphStyle("mcannot", fontName=BODY, fontSize=10.5, leading=14,
+                                 textColor=HOT, spaceAfter=8, alignment=TA_LEFT),
+        "note": ParagraphStyle("mnote", fontName=BODY, fontSize=9.5, leading=13,
+                               textColor=MUTED, spaceBefore=8, spaceAfter=4, alignment=TA_LEFT),
+        "red": ParagraphStyle("mred", fontName=BODY, fontSize=9.5, leading=13,
+                              textColor=HOT, spaceBefore=8, spaceAfter=4, alignment=TA_LEFT),
+    }
+
+
+def _mobile_para(text, style):
+    from reportlab.platypus import Paragraph
+    return Paragraph(_mobile_md(text), style)
+
+
+def _mobile_children_story():
+    from reportlab.platypus import Spacer, KeepTogether
+    s = _mobile_styles()
+    meta = ROLE_META["children"]
+    story = [_mobile_para(meta["title"], s["title"]),
+             _mobile_para(meta["subtitle"], s["subtitle"])]
+    for rule, can, cannot in CHILDREN_RULES:
+        story.append(KeepTogether([
+            _mobile_para(rule, s["card"]),
+            _mobile_para("**Можно:** " + can, s["can"]),
+            _mobile_para("**Нельзя:** " + cannot, s["cannot"]),
+            Spacer(1, 4),
+        ]))
+    story.append(_mobile_para("**Пропустил — вернись.** Ошибка — повод исправить, "
+                              "а не повод стыдиться. Листы братьев не сравниваем.", s["note"]))
+    return story
+
+
+def _mobile_adult_story(role):
+    from reportlab.platypus import Spacer
+    s = _mobile_styles()
+    meta = ROLE_META[role]
+    data = meta["data"]
+    story = [_mobile_para(meta["title"], s["title"]),
+             _mobile_para(meta["subtitle"], s["subtitle"])]
+    sections = (
+        ("НУЖНО — держу постоянно", "need", ACCENT2, "—"),
+        ("МОЖНО — это не слабость", "can", GOLD, "—"),
+        ("НЕЛЬЗЯ — стоп-лист", "cannot", HOT, "✕"),
+    )
+    from reportlab.lib.styles import ParagraphStyle
+    for title, key, color, marker in sections:
+        style = ParagraphStyle("mh2_" + key, parent=s["h2"], textColor=color)
+        story.append(_mobile_para(title, style))
+        for item in data[key]:
+            story.append(_mobile_para(f"{marker} " + item, s["body"]))
+    story.append(_mobile_para("При вспышке — один порядок", s["h2"]))
+    story.append(_mobile_para(ADULT_CRISIS, s["body"]))
+    story.append(_mobile_para("Короткие фразы", s["h2"]))
+    story.append(_mobile_para(data["phrases"], s["body"]))
+    story.append(_mobile_para("Если сорвался взрослый", s["h2"]))
+    for item in ADULT_REPAIR:
+        story.append(_mobile_para("— " + item, s["body"]))
+    story.append(_mobile_para(ADULT_RED_FLAGS, s["red"]))
+    return story
+
+
+def _mobile_footer(cv, doc):
+    cv.saveState()
+    cv.setFont(BODY, 7)
+    cv.setFillColor(MUTED)
+    cv.drawString(MOBILE_M, 12, "Правила семьи · мобильная версия")
+    cv.drawRightString(MOBILE_W - MOBILE_M, 12, str(doc.page))
+    cv.restoreState()
+
+
+def _build_mobile_pdf(path, story, title):
+    from reportlab.platypus import SimpleDocTemplate
+    doc = SimpleDocTemplate(str(path), pagesize=(MOBILE_W, MOBILE_H),
+                            leftMargin=MOBILE_M, rightMargin=MOBILE_M,
+                            topMargin=MOBILE_M, bottomMargin=MOBILE_M + 8,
+                            title=title, author="Комплект наставника")
+    doc.build(story, onFirstPage=_mobile_footer, onLaterPages=_mobile_footer)
+    (DOCS_PRINT / path.name).write_bytes(path.read_bytes())
+    print(f"  {path.name:34s} {path.stat().st_size // 1024:>3} KB  — мобильная версия")
+
+
+def mobile_rule_pdfs():
+    from reportlab.platypus import PageBreak
+    for role in ("children", "dad", "mom"):
+        meta = ROLE_META[role]
+        story = _mobile_children_story() if role == "children" else _mobile_adult_story(role)
+        _build_mobile_pdf(OUT / meta["mobile_pdf"], story, meta["title"] + " · мобильная версия")
+    combined = (_mobile_children_story() + [PageBreak()] +
+                _mobile_adult_story("dad") + [PageBreak()] +
+                _mobile_adult_story("mom"))
+    _build_mobile_pdf(OUT / "16m_pravila_semyi_mobile.pdf", combined,
+                      "Правила семьи · мобильная версия")
+
+
 # ------------------------------------------------------------------ обложка
 PACK_CONTENTS = [
     ("Плакат на холодильник", "пять правил, стоп-лист, три фразы-выручалочки", "1 стр. A4"),
@@ -1265,6 +1709,8 @@ PACK_CONTENTS = [
     ("Памятка маме", "что говорить и чего не говорить про ревность", "1 стр. A4"),
     ("Дневник силы", "отметка за каждый день + итоги недели и месяца", "1 стр. A4 на ребёнка"),
     ("Итоги недели", "разговор на 5 минут и договорённость о поощрении", "1 лист = 2 карточки A5"),
+    ("Листы полезных дел", "зарядка, турник и другие дела: неделя + месяц", "2 стр. A4 на ребёнка"),
+    ("Правила семьи", "отдельные листы: детям, папе, маме", "3 стр. A4"),
 ]
 
 
@@ -1280,7 +1726,7 @@ def cover(c):
 
     y = f.y
     for i, (name, what, how) in enumerate(PACK_CONTENTS, 1):
-        row_h = 34
+        row_h = 31
         c.setFont(SERIF_BOLD, 13)
         c.setFillColor(GOLD)
         c.drawRightString(f.x + 15, y - 13, f"{i}")
@@ -1323,7 +1769,7 @@ def cover(c):
 
 
 # ------------------------------------------------------------------ сборка
-VERSION = "1.0 · 30.10.2026"
+VERSION = "1.3 · 31.10.2026"
 
 DOCUMENTS = [
     ("01_na_holodilnik_A4.pdf", "плакат на холодильник (A4)", A4W, A4H, _fridge_page),
@@ -1338,6 +1784,10 @@ DOCUMENTS = [
     ("09_pamyatka_mame.pdf", "памятка маме", A4W, A4H, memo_mom),
     ("10_dnevnik_sily.pdf", "дневник силы на месяц", A4W, A4H, daily_diary),
     ("11_itogi_nedeli.pdf", "итоги недели (2 шт. на листе)", A4H, A4W, weekly_results),
+    ("12_listy_poleznyh_del.pdf", "полезные дела: неделя + месяц", A4W, A4H, useful_deeds),
+    ("13_pravila_detey_A4.pdf", "правила детям на видное место", A4W, A4H, family_rules_children),
+    ("14_pravila_papy_A4.pdf", "правила папе: нужно / можно / нельзя", A4W, A4H, family_rules_dad),
+    ("15_pravila_mamy_A4.pdf", "правила маме: нужно / можно / нельзя", A4W, A4H, family_rules_mom),
 ]
 
 
@@ -1355,6 +1805,23 @@ def main():
         c.save()
         (DOCS_PRINT / name).write_bytes(path.read_bytes())
         print(f"  {name:34s} {path.stat().st_size // 1024:>3} KB  — {title}")
+
+    # отдельный файл «правила семьи»: три листа подряд, без остальных бланков
+    rules_name = "16_pravila_semyi_3xA4.pdf"
+    rules_path = OUT / rules_name
+    rc = canvas.Canvas(str(rules_path), pagesize=(A4W, A4H))
+    rc.setTitle("Наставник — правила семьи: детям, папе, маме")
+    rc.setAuthor("Комплект наставника")
+    rc.setSubject("Три отдельных листа A4: правила детям, правила папе, правила маме")
+    family_rules_children(rc)
+    family_rules_dad(rc)
+    family_rules_mom(rc)
+    rc.save()
+    (DOCS_PRINT / rules_name).write_bytes(rules_path.read_bytes())
+    print(f"  {rules_name:34s} {rules_path.stat().st_size // 1024:>3} KB  — правила семьи, 3 стр. A4")
+
+    # мобильные PDF: узкая страница, крупный текст, отдельные файлы и общий
+    mobile_rule_pdfs()
 
     # один файл на печать: обложка + все листы по порядку
     pack_path = OUT / "00_komplekt_na_pechat.pdf"
@@ -1390,7 +1857,7 @@ PDF продублированы в `docs/print/` — их можно откры
 
 | Файл | Что это | Сколько | Как |
 |---|---|---|---|
-| `00_komplekt_na_pechat.pdf` | **весь комплект одним файлом**: обложка + все листы по порядку | 10 страниц | проще всего: печать «все страницы», дальше разрезать карточки |
+| `00_komplekt_na_pechat.pdf` | **весь комплект одним файлом**: обложка + все листы по порядку | 17 страниц | проще всего: печать «все страницы», дальше разрезать карточки |
 | `01_na_holodilnik_A4.pdf` | пять правил + стоп-лист + три фразы | 1–2 | A4, 100 %. Один лист на кухню, второй — наставнику в папку |
 | `01b_na_holodilnik_A5_2up.pdf` | то же в размере A5 | по желанию | A4, разрезать пополам: два маленьких плаката (холодильник + машина) |
 | `02_karta_utra.pdf` | карта утра на месяц | по 1 на мальчика в месяц | A4. Имя вписать, остальное ребёнок отмечает сам |
@@ -1403,6 +1870,15 @@ PDF продублированы в `docs/print/` — их можно откры
 | `09_pamyatka_mame.pdf` | памятка маме | 1 | A4. Отдать лично и сказать: «это шпаргалка, а не оценка» |
 | `10_dnevnik_sily.pdf` | дневник силы на месяц: отметка за каждый день + итоги недель и месяца | по 1 на мальчика в месяц | A4. Имя вписать, отметки ставит сам ребёнок |
 | `11_itogi_nedeli.pdf` | итоги недели: разговор на 5 минут и договорённость о поощрении, 2 шт. на листе | 1 лист на мальчика в неделю | A4, разрезать: карточка на неделю каждому |
+| `12_listy_poleznyh_del.pdf` | полезные дела: неделя с крупными клетками + месяц на 31 день | стр. 1 — по 1 на мальчика в неделю; стр. 2 — по 1 в месяц | A4, односторонняя печать. Зарядка и турник отдельно, свой пункт по желанию |
+| `13_pravila_detey_A4.pdf` | правила детям: правило / можно / нельзя | 1–2 | A4, повесить на видное место |
+| `14_pravila_papy_A4.pdf` | правила папе: нужно / можно / нельзя | 1 | A4, для папы |
+| `15_pravila_mamy_A4.pdf` | правила маме: нужно / можно / нельзя | 1 | A4, для мамы |
+| `16_pravila_semyi_3xA4.pdf` | правила семьи одним файлом: детям, папе, маме | 3 страницы | A4: стр. 1 детям, стр. 2 папе, стр. 3 маме |
+| `13m_pravila_detey_mobile.pdf` | правила детям для телефона | по желанию | узкая страница, крупный текст; не для печати A4 |
+| `14m_pravila_papy_mobile.pdf` | правила папе для телефона | по желанию | узкая страница, крупный текст; не для печати A4 |
+| `15m_pravila_mamy_mobile.pdf` | правила маме для телефона | по желанию | узкая страница, крупный текст; не для печати A4 |
+| `16m_pravila_semyi_mobile.pdf` | правила семьи для телефона одним файлом | по желанию | детям, папе, маме; не для печати A4 |
 | `qr_nastavnik.png` | QR на свод | сколько нужно | Наклейка на папку, холодильник, бланки |
 
 ## Настройки принтера
