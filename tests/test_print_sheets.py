@@ -75,10 +75,43 @@ class UsefulDeedsTests(unittest.TestCase):
                                for name, _, _, _, _ in bp.DOCUMENTS
                                if not name.startswith("01b"))
             self.assertEqual(pdf_page_count(pack), expected)
-            self.assertEqual(expected, 14)
+            self.assertEqual(expected, 17)
             readme = (bp.OUT / "README.md").read_text(encoding="utf-8")
             self.assertIn("12_listy_poleznyh_del.pdf", readme)
-            self.assertIn("14 страниц", readme)
+            self.assertIn("17 страниц", readme)
+            rules = (bp.OUT / "16_pravila_semyi_3xA4.pdf").read_bytes()
+            self.assertEqual(pdf_page_count(rules), 3)
+            self.assertEqual(rules, (bp.DOCS_PRINT / "16_pravila_semyi_3xA4.pdf").read_bytes())
+
+
+class FamilyRulesTests(unittest.TestCase):
+    def test_children_rules_have_can_and_cannot(self):
+        self.assertEqual(len(bp.CHILDREN_RULES), 6)
+        for rule, can, cannot in bp.CHILDREN_RULES:
+            self.assertTrue(rule and can and cannot)
+
+    def test_adult_rules_have_need_can_cannot(self):
+        for data in (bp.DAD_RULES, bp.MOM_RULES):
+            self.assertEqual(set(data), {"need", "can", "cannot", "phrases"})
+            for key in ("need", "can", "cannot"):
+                self.assertGreaterEqual(len(data[key]), 4)
+
+    def test_three_portrait_a4_pages_render(self):
+        buf = io.BytesIO()
+        c = canvas.Canvas(buf, pagesize=(A4W, A4H))
+        bp.family_rules_children(c)
+        bp.family_rules_dad(c)
+        bp.family_rules_mom(c)
+        c.save()
+        data = buf.getvalue()
+        self.assertEqual(pdf_page_count(data), 3)
+        boxes = re.findall(rb"/MediaBox\s*\[([^\]]+)\]", data)
+        self.assertEqual(len(boxes), 3)
+        for box in boxes:
+            x0, y0, x1, y1 = map(float, box.split())
+            self.assertAlmostEqual(x1 - x0, A4W, places=3)
+            self.assertAlmostEqual(y1 - y0, A4H, places=3)
+            self.assertLess(x1, y1)
 
 
 if __name__ == "__main__":
