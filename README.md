@@ -139,7 +139,9 @@ workflow «Deploy карманного свода» → *Run workflow*.
 - `family/` — два раздельных приложения: публичное семейное и закрытое родительское.
 - `family/content/parents/metodika-pylesos.md` — первая закрытая родительская методика.
 - Запуск: `python3 -m family.server --family-port 8000 --parents-port 8001`.
-- Родительский контур требует серверного входа и не подходит для GitHub Pages.
+- Открытая версия для телефона: https://artignat2000.github.io/mentor/family/
+- Статическая сборка только семейного контура: `python3 -m family.build_public`.
+- Родительский контур требует серверного входа и не экспортируется на GitHub Pages.
 
 Подробнее: `family/README.md`.
 

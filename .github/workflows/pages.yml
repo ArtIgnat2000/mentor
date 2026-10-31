@@ -32,6 +32,11 @@ jobs:
       - name: Пересобрать страницу из markdown
         run: python3 build_site.py
 
+      # Публикуем только открытый семейный контур. Родительские методики
+      # требуют серверного входа и в артефакт Pages не попадают.
+      - name: Собрать открытый семейный справочник
+        run: python3 -m family.build_public
+
       - name: Что изменилось после пересборки
         run: |
           git --no-pager diff --stat -- docs
