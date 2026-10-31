@@ -9,6 +9,7 @@ import unittest
 from reportlab.pdfgen import canvas
 
 import build_print as bp
+import build_site as bs
 from printkit import A4H, A4W, MM
 
 
@@ -82,6 +83,16 @@ class UsefulDeedsTests(unittest.TestCase):
             rules = (bp.OUT / "16_pravila_semyi_3xA4.pdf").read_bytes()
             self.assertEqual(pdf_page_count(rules), 3)
             self.assertEqual(rules, (bp.DOCS_PRINT / "16_pravila_semyi_3xA4.pdf").read_bytes())
+            for name in ("13m_pravila_detey_mobile.pdf", "14m_pravila_papy_mobile.pdf",
+                         "15m_pravila_mamy_mobile.pdf", "16m_pravila_semyi_mobile.pdf"):
+                data = (bp.OUT / name).read_bytes()
+                self.assertGreater(pdf_page_count(data), 0)
+                self.assertEqual(data, (bp.DOCS_PRINT / name).read_bytes())
+                boxes = re.findall(rb"/MediaBox\s*\[([^\]]+)\]", data)
+                for box in boxes:
+                    x0, y0, x1, y1 = map(float, box.split())
+                    self.assertLess(x1 - x0, y1 - y0)
+                    self.assertLessEqual(x1 - x0, bp.MOBILE_W + 1)
 
 
 class FamilyRulesTests(unittest.TestCase):
@@ -112,6 +123,27 @@ class FamilyRulesTests(unittest.TestCase):
             self.assertAlmostEqual(x1 - x0, A4W, places=3)
             self.assertAlmostEqual(y1 - y0, A4H, places=3)
             self.assertLess(x1, y1)
+
+
+class MobileRulesTests(unittest.TestCase):
+    def test_mobile_html_pages_are_generated(self):
+        old_out = bs.OUT
+        with tempfile.TemporaryDirectory() as tmp:
+            bs.OUT = Path(tmp) / "docs"
+            try:
+                mobile = bs.build_mobile_rules()
+            finally:
+                bs.OUT = old_out
+            for name in ("index.html", "detyam.html", "pape.html", "mame.html"):
+                page = (mobile / name).read_text(encoding="utf-8")
+                self.assertIn('name="viewport"', page)
+                self.assertIn("<h1>", page)
+            children = (mobile / "detyam.html").read_text(encoding="utf-8")
+            self.assertIn("Можно:", children)
+            self.assertIn("Нельзя:", children)
+            dad = (mobile / "pape.html").read_text(encoding="utf-8")
+            self.assertIn("НУЖНО", dad)
+            self.assertIn("НЕЛЬЗЯ", dad)
 
 
 if __name__ == "__main__":

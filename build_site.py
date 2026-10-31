@@ -18,6 +18,8 @@ import json
 import hashlib
 from pathlib import Path
 
+from family_rules import CHILDREN_RULES, ADULT_CRISIS, ADULT_REPAIR, ADULT_RED_FLAGS, ROLE_META
+
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "docs"
 
@@ -195,12 +197,167 @@ def refresh_sw_version(page: str):
     sw = OUT / "sw.js"
     if not sw.exists():
         return None
-    version = "nastavnik-" + hashlib.sha256(page.encode("utf-8")).hexdigest()[:10]
+    digest = hashlib.sha256(page.encode("utf-8"))
+    mobile = OUT / "mobile"
+    if mobile.exists():
+        for path in sorted(mobile.glob("*.html")):
+            digest.update(path.read_bytes())
+    version = "nastavnik-" + digest.hexdigest()[:10]
     text = sw.read_text(encoding="utf-8")
     new = re.sub(r"const CACHE = '[^']*';", f"const CACHE = '{version}';", text, count=1)
     if new != text:
         sw.write_text(new, encoding="utf-8")
     return version if new != text else None
+
+
+# ------------------------------------------------------------------ мобильные правила
+MOBILE_CSS = """
+:root{--bg:#f4f1ea;--card:#fffdf8;--ink:#1c2321;--muted:#6b7570;--accent:#16302b;
+      --accent2:#2f6b5b;--hot:#b4472e;--gold:#b58a2b;--line:#ddd6c8;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{-webkit-text-size-adjust:100%;}
+body{margin:0;background:var(--bg);color:var(--ink);
+     font:17px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;}
+.top{position:sticky;top:0;z-index:10;background:var(--accent);color:#f4f1ea;
+     padding:10px 14px;display:flex;gap:12px;align-items:center;}
+.top a{color:#f4f1ea;text-decoration:none;font-size:14px;opacity:.9;}
+.wrap{max-width:680px;margin:0 auto;padding:16px 14px 44px;}
+h1{font-size:27px;line-height:1.2;margin:12px 0 6px;}
+.sub{color:var(--muted);margin:0 0 14px;}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+      padding:14px;margin:10px 0;}
+.card h2{font-size:19px;line-height:1.3;margin:0 0 8px;}
+.card p{margin:6px 0;}
+.label{font-weight:700;}
+.can{color:var(--accent2);}
+.cannot{color:var(--hot);}
+.section{margin:20px 0;}
+.section h2{font-size:20px;margin:0 0 8px;}
+.need h2{color:var(--accent2);}
+.cansec h2{color:var(--gold);}
+.cannotsec h2{color:var(--hot);}
+ul{margin:0;padding-left:20px;}
+li{margin:9px 0;}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0;}
+.btn{display:inline-block;padding:10px 12px;border-radius:10px;background:var(--accent);
+     color:#fff;text-decoration:none;font-size:15px;}
+.btn.secondary{background:#fff;color:var(--accent);border:1px solid var(--line);}
+.note{background:#faf6ea;border-left:4px solid var(--gold);padding:12px;
+      border-radius:8px;margin:14px 0;}
+.red{color:var(--hot);background:#fdf2ee;border-left:4px solid var(--hot);
+     padding:12px;border-radius:8px;margin:14px 0;}
+.index-card{display:block;text-decoration:none;color:inherit;}
+.index-card .btn{margin-top:8px;}
+@media print{.top,.actions{display:none;}body{background:#fff;}.wrap{max-width:none;}}
+"""
+
+
+def _mobile_shell(title, body):
+    return f"""<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#16302b">
+<title>{html.escape(title)}</title>
+<style>{MOBILE_CSS}</style>
+</head>
+<body>
+<div class="top"><a href="../index.html">← Свод</a><a href="index.html">Все правила</a></div>
+<main class="wrap">
+{body}
+</main>
+</body>
+</html>
+"""
+
+
+def _mobile_actions(meta):
+    return (
+        '<div class="actions">'
+        f'<a class="btn secondary" href="../print/{meta["a4"]}">Печать A4</a>'
+        f'<a class="btn secondary" href="../print/{meta["mobile_pdf"]}">Мобильный PDF</a>'
+        '</div>'
+    )
+
+
+def _mobile_children_html():
+    meta = ROLE_META["children"]
+    parts = [f'<h1>{html.escape(meta["title"])}</h1>',
+             f'<p class="sub">{html.escape(meta["subtitle"])}</p>',
+             _mobile_actions(meta)]
+    for rule, can, cannot in CHILDREN_RULES:
+        parts.append(
+            '<section class="card">'
+            f'<h2>{html.escape(rule)}</h2>'
+            f'<p class="can"><span class="label">Можно:</span> {html.escape(can)}</p>'
+            f'<p class="cannot"><span class="label">Нельзя:</span> {html.escape(cannot)}</p>'
+            '</section>'
+        )
+    parts.append('<p class="note"><strong>Пропустил — вернись.</strong> Ошибка — повод исправить, '
+                 'а не повод стыдиться. Листы братьев не сравниваем: у каждого свой путь.</p>')
+    parts.append(_mobile_actions(meta))
+    return _mobile_shell(meta["title"] + " · телефон", "\n".join(parts))
+
+
+def _mobile_adult_html(role):
+    meta = ROLE_META[role]
+    data = meta["data"]
+    parts = [f'<h1>{html.escape(meta["title"])}</h1>',
+             f'<p class="sub">{html.escape(meta["subtitle"])}</p>',
+             _mobile_actions(meta)]
+    sections = (
+        ("НУЖНО — держу постоянно", "need", "need"),
+        ("МОЖНО — это не слабость", "can", "cansec"),
+        ("НЕЛЬЗЯ — стоп-лист", "cannot", "cannotsec"),
+    )
+    for title, key, cls in sections:
+        items = "".join(f"<li>{inline(item)}</li>" for item in data[key])
+        parts.append(f'<section class="section {cls}"><h2>{title}</h2><ul>{items}</ul></section>')
+    parts.append('<section class="section"><h2>При вспышке — один порядок</h2>'
+                 f'<p>{html.escape(ADULT_CRISIS)}</p></section>')
+    parts.append('<section class="section"><h2>Короткие фразы</h2>'
+                 f'<p>{html.escape(data["phrases"])}</p></section>')
+    repair = "".join(f"<li>{html.escape(item)}</li>" for item in ADULT_REPAIR)
+    parts.append('<section class="section"><h2>Если сорвался взрослый</h2>'
+                 f'<ul>{repair}</ul></section>')
+    parts.append(f'<p class="red">{inline(ADULT_RED_FLAGS)}</p>')
+    parts.append(_mobile_actions(meta))
+    return _mobile_shell(meta["title"] + " · телефон", "\n".join(parts))
+
+
+def _mobile_index_html():
+    cards = []
+    labels = {"children": "Детям", "dad": "Папе", "mom": "Маме"}
+    for role, meta in ROLE_META.items():
+        cards.append(
+            '<section class="card">'
+            f'<h2>{labels[role]}</h2>'
+            f'<p class="sub">{html.escape(meta["subtitle"])}</p>'
+            '<div class="actions">'
+            f'<a class="btn" href="{meta["html"]}">Открыть на телефоне</a>'
+            f'<a class="btn secondary" href="../print/{meta["a4"]}">A4</a>'
+            f'<a class="btn secondary" href="../print/{meta["mobile_pdf"]}">PDF</a>'
+            '</div></section>'
+        )
+    body = ('<h1>Правила семьи на телефоне</h1>'
+            '<p class="sub">Крупные карточки для экрана. Печатные листы A4 — отдельно.</p>'
+            + "".join(cards) +
+            '<div class="actions">'
+            '<a class="btn secondary" href="../print/16_pravila_semyi_3xA4.pdf">Все правила A4</a>'
+            '<a class="btn secondary" href="../print/16m_pravila_semyi_mobile.pdf">Все правила PDF</a>'
+            '</div>')
+    return _mobile_shell("Правила семьи · телефон", body)
+
+
+def build_mobile_rules():
+    mobile = OUT / "mobile"
+    mobile.mkdir(parents=True, exist_ok=True)
+    (mobile / "index.html").write_text(_mobile_index_html(), encoding="utf-8")
+    (mobile / "detyam.html").write_text(_mobile_children_html(), encoding="utf-8")
+    (mobile / "pape.html").write_text(_mobile_adult_html("dad"), encoding="utf-8")
+    (mobile / "mame.html").write_text(_mobile_adult_html("mom"), encoding="utf-8")
+    return mobile
 
 
 # ------------------------------------------------------------------ build
@@ -337,7 +494,18 @@ def build():
     else:
         print_block = ""
 
-    home = home.replace("__PRINT__", print_block)
+    mobile_block = (
+        '<h2 class="sect-h">Правила семьи на телефоне</h2>'
+        '<div class="quick">'
+        '<a class="q" href="mobile/index.html">📱 Все правила: детям, папе, маме</a>'
+        '<a class="q" href="mobile/detyam.html">🧒 Детям</a>'
+        '<a class="q" href="mobile/pape.html">👨 Папе</a>'
+        '<a class="q" href="mobile/mame.html">👩 Маме</a>'
+        '</div>'
+        '<p class="pdf-note">Мобильные страницы крупные и читаются с телефона. '
+        'Печатные версии A4 остаются в разделе «Печатные материалы».</p>'
+    )
+    home = home.replace("__PRINT__", print_block + mobile_block)
 
     CSS = """
   :root{--bg:#f4f1ea;--card:#fffdf8;--ink:#1c2321;--muted:#6b7570;--accent:#16302b;
@@ -583,9 +751,11 @@ __PANES__
     (OUT / ".nojekyll").write_text("", encoding="utf-8")
     # версия офлайн-кэша: обновляется здесь, чтобы страницу можно было пересобрать
     # без Pillow (например, в GitHub Actions) и телефон не показывал старую копию
+    mobile = build_mobile_rules()
     version = refresh_sw_version(page)
     extra = f", кэш {version}" if version else ""
     print(f"ok: docs/index.html = {len(page)} bytes, разделов: {len(search_index)}{extra}")
+    print(f"ok: мобильные правила → {mobile.relative_to(ROOT)}/")
 
 
 if __name__ == "__main__":

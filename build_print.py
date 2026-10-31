@@ -16,6 +16,8 @@
 """
 from io import BytesIO
 from pathlib import Path
+import html
+import re
 
 import segno
 from reportlab.lib.utils import ImageReader
@@ -30,6 +32,10 @@ from printkit import (
     A4H, A4W, A5H, A5W, DASH, MM, ACCENT, ACCENT2, BODY, BOLD, CREAM, GOLD, GOLD_BG,
     HOT, HOT_BG, INK, LINE, LINE_SOFT, MUTED, PAPER, SERIF_BOLD, TINT,
     Flow, cut_marks, dotted, draw_wrapped, hline, n_lines, panel, vline, wrap,
+)
+from family_rules import (
+    CHILDREN_RULES, ADULT_CRISIS, ADULT_REPAIR, ADULT_RED_FLAGS,
+    DAD_RULES, MOM_RULES, ROLE_META,
 )
 
 ROOT = Path(__file__).resolve().parent
@@ -1446,84 +1452,6 @@ def useful_deeds(c):
     useful_deeds_month(c)
 
 
-# ------------------------------------------------------------------ 13–15. правила семьи
-# Печатные листы для видимого места. Это не замена markdown-документам, а
-# короткая выжимка: детям — правила поведения, взрослым — зоны ответственности.
-CHILDREN_RULES = [
-    ("Говорим спокойно",
-     "злиться; сказать «я злюсь»; попросить паузу.",
-     "кричать на человека, обзывать, угрожать."),
-    ("Руки и вещи — с уважением",
-     "попросить словами; играть вместе по договорённости.",
-     "драться, толкать, брать чужое без спроса, ломать."),
-    ("Делаем своё по режиму",
-     "попросить помощь; в трудный день сделать минимальный вариант.",
-     "перекладывать своё на брата; бросать дело после первой трудности."),
-    ("Помогаем дома",
-     "выбрать доброе дело; помочь брату или родителям.",
-     "требовать награду за каждую помощь; делать вид, что помог."),
-    ("После ссоры чиним",
-     "остыть; сказать, что случилось; извиниться и исправить.",
-     "продолжать обзывать; мстить; вспоминать старое."),
-    ("Говорим правду и просим помощи",
-     "признать ошибку; сказать взрослому об опасности.",
-     "врать, чтобы скрыть опасное; молчать, когда кому-то плохо."),
-]
-
-ADULT_CRISIS = ("Стоп → безопасность → тихий голос → пауза → разбор позже → ремонт. "
-                "В момент вспышки не воспитываем словами.")
-
-DAD_RULES = {
-    "need": [
-        "**Держать режим и границы:** подъём, зарядка/турник, своё дело, помощь, отбой. Правила не зависят от настроения.",
-        "**При вспышке быть первой линией:** безопасность, тихий голос, пауза; разбор и ремонт — после успокоения.",
-        "**Личное время с каждым** — с собой и с мамой; не отменять за поведение и не выдавать за успехи.",
-        "**Замечать конкретное усилие и держать слово.** Не можешь — скажи заранее.",
-        "**Раз в неделю без детей** сверять с мамой/наставником: факты, что мешает, одно изменение.",
-    ],
-    "can": [
-        "Требовать посильное дело; уменьшать объём до минимума, но не до нуля.",
-        "Давать выбор внутри правила: когда и как, а не «делать или нет».",
-        "Остановить ссору, развести по разным точкам: «Я помогаю закончить».",
-        "Признать свою ошибку, извиниться и договориться заново.",
-    ],
-    "cannot": [
-        "Кричать, пугать, унижать, бить; лишать еды, сна, туалета, помощи.",
-        "Сравнивать братьев и назначать виноватого в момент ссоры.",
-        "Отменять при детях решения мамы/наставника; спорить о правилах при детях.",
-        "Использовать любовь, личное время и базовую заботу как награду или наказание.",
-        "Обсуждать маму с детьми и делать её арбитром между сыновьями.",
-        "Вводить больше одного нового правила в неделю.",
-    ],
-    "phrases": "«Я рядом. Кричать не буду.» · «Злиться можно, бить нельзя.» · «Разберём, когда остынем.»",
-}
-
-MOM_RULES = {
-    "need": [
-        "**Личное время с каждым** — короткое, регулярное, своё; не отменять за поведение и не выдавать за успехи.",
-        "**Называть чувство:** «тебе обидно», «тебе мало меня»; не спорить с ревностью и не стыдить.",
-        "**При ссоре:** остановить, назвать чувство, не искать виноватого; ремонт — позже.",
-        "**Поддерживать единые правила с папой.** Несогласие обсуждать без детей.",
-        "**Принимать помощь с благодарностью:** замечать конкретное действие, без «наконец-то».",
-    ],
-    "can": [
-        "Сказать «я устала, мне нужна пауза» и взять безопасную паузу.",
-        "Отказаться быть судьёй между сыновьями.",
-        "Попросить конкретную помощь: «побудь с ним в четверг», а не «повлияй на него».",
-        "Держать свои границы: «со мной так нельзя», «я помогу, когда ты говоришь спокойно».",
-    ],
-    "cannot": [
-        "«Не ревнуй», «ты старший — уступи», «будь как брат», «из-за тебя у меня…».",
-        "Сравнивать, стыдить, делать ребёнка виноватым за усталость взрослого.",
-        "Отменять при детях последствия папы или тайно разрешать запрещённое.",
-        "Обсуждать папу с детьми негативно и делать ребёнка союзником против взрослого.",
-        "Использовать личное время как приз или наказание.",
-        "Игнорировать красные флаги: самоповреждение, «не хочу жить», отказ от еды/сна.",
-    ],
-    "phrases": "«Тебе мало меня — это понятно.» · «Я люблю тебя и держу правило.» · «Я не выбираю, кто прав; я помогаю закончить.»",
-}
-
-
 def family_rules_children(c):
     top = page_header(c, "Правила семьи · детям", "A4 · повесить на видное место")
     f = Flow(c, M, A4W - M, top)
@@ -1620,15 +1548,10 @@ def _adult_rules_page(c, role, title, subtitle, data):
     f.para(data["phrases"], size=9.1, leading=11.6, color=INK, space_after=4)
 
     f.h2("Если сорвался взрослый", size=10.5, color=ACCENT, space_before=6, space_after=3)
-    f.bullets([
-        "Остановиться и снизить голос. Не продолжать разбор на эмоциях.",
-        "Сказать: «Я был неправ, что кричал/обидел». Извиниться без «но».",
-        "Договориться, как поступим в следующий раз. Не требовать немедленного ответа.",
-    ], size=9.1, leading=11.6, gap=2.6, marker="—", marker_color=ACCENT2)
-    f.para("**Красные флаги:** самоповреждение, «не хочу жить», отказ от еды/сна, "
-           "агрессия с повреждением вещей или себя. Это повод обратиться за помощью, "
-           "а не усиливать наказания.",
-           size=8.4, leading=10.8, color=HOT, space_before=4, space_after=4)
+    f.bullets(ADULT_REPAIR, size=9.1, leading=11.6, gap=2.6,
+              marker="—", marker_color=ACCENT2)
+    f.para(ADULT_RED_FLAGS, size=8.4, leading=10.8, color=HOT,
+           space_before=4, space_after=4)
 
     if f.y < M + 12 * MM:
         raise SystemExit(f"правила для {role}: лист не влезает")
@@ -1645,6 +1568,132 @@ def family_rules_dad(c):
 def family_rules_mom(c):
     _adult_rules_page(c, "маме", "Правила для мамы",
                       "Мама держит тёплый контакт, личное время и свои границы. Не отменяет правила, а помогает им работать.", MOM_RULES)
+
+
+# ------------------------------------------------------------------ мобильные PDF правил
+# Узкая страница «под телефон»: крупный текст, одна колонка, автоматические
+# переносы. Это не замена A4, а второй вариант для просмотра с экрана.
+MOBILE_W, MOBILE_H = 360, 720
+MOBILE_M = 20
+
+
+def _mobile_color(color):
+    return "#" + color.hexval()[2:]
+
+
+def _mobile_md(text):
+    t = html.escape(text, quote=False)
+    return re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", t)
+
+
+def _mobile_styles():
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib.enums import TA_LEFT
+    return {
+        "title": ParagraphStyle("mtitle", fontName=SERIF_BOLD, fontSize=19, leading=23,
+                                textColor=ACCENT, spaceAfter=6, alignment=TA_LEFT),
+        "subtitle": ParagraphStyle("msub", fontName=BODY, fontSize=10.5, leading=14,
+                                   textColor=MUTED, spaceAfter=12, alignment=TA_LEFT),
+        "h2": ParagraphStyle("mh2", fontName=BOLD, fontSize=12.5, leading=16,
+                             textColor=ACCENT, spaceBefore=10, spaceAfter=5, alignment=TA_LEFT),
+        "card": ParagraphStyle("mcard", fontName=BOLD, fontSize=12, leading=15,
+                               textColor=ACCENT, spaceAfter=4, alignment=TA_LEFT),
+        "body": ParagraphStyle("mbody", fontName=BODY, fontSize=10.5, leading=14,
+                               textColor=INK, spaceAfter=5, alignment=TA_LEFT),
+        "can": ParagraphStyle("mcan", fontName=BODY, fontSize=10.5, leading=14,
+                              textColor=ACCENT2, spaceAfter=3, alignment=TA_LEFT),
+        "cannot": ParagraphStyle("mcannot", fontName=BODY, fontSize=10.5, leading=14,
+                                 textColor=HOT, spaceAfter=8, alignment=TA_LEFT),
+        "note": ParagraphStyle("mnote", fontName=BODY, fontSize=9.5, leading=13,
+                               textColor=MUTED, spaceBefore=8, spaceAfter=4, alignment=TA_LEFT),
+        "red": ParagraphStyle("mred", fontName=BODY, fontSize=9.5, leading=13,
+                              textColor=HOT, spaceBefore=8, spaceAfter=4, alignment=TA_LEFT),
+    }
+
+
+def _mobile_para(text, style):
+    from reportlab.platypus import Paragraph
+    return Paragraph(_mobile_md(text), style)
+
+
+def _mobile_children_story():
+    from reportlab.platypus import Spacer, KeepTogether
+    s = _mobile_styles()
+    meta = ROLE_META["children"]
+    story = [_mobile_para(meta["title"], s["title"]),
+             _mobile_para(meta["subtitle"], s["subtitle"])]
+    for rule, can, cannot in CHILDREN_RULES:
+        story.append(KeepTogether([
+            _mobile_para(rule, s["card"]),
+            _mobile_para("**Можно:** " + can, s["can"]),
+            _mobile_para("**Нельзя:** " + cannot, s["cannot"]),
+            Spacer(1, 4),
+        ]))
+    story.append(_mobile_para("**Пропустил — вернись.** Ошибка — повод исправить, "
+                              "а не повод стыдиться. Листы братьев не сравниваем.", s["note"]))
+    return story
+
+
+def _mobile_adult_story(role):
+    from reportlab.platypus import Spacer
+    s = _mobile_styles()
+    meta = ROLE_META[role]
+    data = meta["data"]
+    story = [_mobile_para(meta["title"], s["title"]),
+             _mobile_para(meta["subtitle"], s["subtitle"])]
+    sections = (
+        ("НУЖНО — держу постоянно", "need", ACCENT2, "—"),
+        ("МОЖНО — это не слабость", "can", GOLD, "—"),
+        ("НЕЛЬЗЯ — стоп-лист", "cannot", HOT, "✕"),
+    )
+    from reportlab.lib.styles import ParagraphStyle
+    for title, key, color, marker in sections:
+        style = ParagraphStyle("mh2_" + key, parent=s["h2"], textColor=color)
+        story.append(_mobile_para(title, style))
+        for item in data[key]:
+            story.append(_mobile_para(f"{marker} " + item, s["body"]))
+    story.append(_mobile_para("При вспышке — один порядок", s["h2"]))
+    story.append(_mobile_para(ADULT_CRISIS, s["body"]))
+    story.append(_mobile_para("Короткие фразы", s["h2"]))
+    story.append(_mobile_para(data["phrases"], s["body"]))
+    story.append(_mobile_para("Если сорвался взрослый", s["h2"]))
+    for item in ADULT_REPAIR:
+        story.append(_mobile_para("— " + item, s["body"]))
+    story.append(_mobile_para(ADULT_RED_FLAGS, s["red"]))
+    return story
+
+
+def _mobile_footer(cv, doc):
+    cv.saveState()
+    cv.setFont(BODY, 7)
+    cv.setFillColor(MUTED)
+    cv.drawString(MOBILE_M, 12, "Правила семьи · мобильная версия")
+    cv.drawRightString(MOBILE_W - MOBILE_M, 12, str(doc.page))
+    cv.restoreState()
+
+
+def _build_mobile_pdf(path, story, title):
+    from reportlab.platypus import SimpleDocTemplate
+    doc = SimpleDocTemplate(str(path), pagesize=(MOBILE_W, MOBILE_H),
+                            leftMargin=MOBILE_M, rightMargin=MOBILE_M,
+                            topMargin=MOBILE_M, bottomMargin=MOBILE_M + 8,
+                            title=title, author="Комплект наставника")
+    doc.build(story, onFirstPage=_mobile_footer, onLaterPages=_mobile_footer)
+    (DOCS_PRINT / path.name).write_bytes(path.read_bytes())
+    print(f"  {path.name:34s} {path.stat().st_size // 1024:>3} KB  — мобильная версия")
+
+
+def mobile_rule_pdfs():
+    from reportlab.platypus import PageBreak
+    for role in ("children", "dad", "mom"):
+        meta = ROLE_META[role]
+        story = _mobile_children_story() if role == "children" else _mobile_adult_story(role)
+        _build_mobile_pdf(OUT / meta["mobile_pdf"], story, meta["title"] + " · мобильная версия")
+    combined = (_mobile_children_story() + [PageBreak()] +
+                _mobile_adult_story("dad") + [PageBreak()] +
+                _mobile_adult_story("mom"))
+    _build_mobile_pdf(OUT / "16m_pravila_semyi_mobile.pdf", combined,
+                      "Правила семьи · мобильная версия")
 
 
 # ------------------------------------------------------------------ обложка
@@ -1720,7 +1769,7 @@ def cover(c):
 
 
 # ------------------------------------------------------------------ сборка
-VERSION = "1.2 · 31.10.2026"
+VERSION = "1.3 · 31.10.2026"
 
 DOCUMENTS = [
     ("01_na_holodilnik_A4.pdf", "плакат на холодильник (A4)", A4W, A4H, _fridge_page),
@@ -1770,6 +1819,9 @@ def main():
     rc.save()
     (DOCS_PRINT / rules_name).write_bytes(rules_path.read_bytes())
     print(f"  {rules_name:34s} {rules_path.stat().st_size // 1024:>3} KB  — правила семьи, 3 стр. A4")
+
+    # мобильные PDF: узкая страница, крупный текст, отдельные файлы и общий
+    mobile_rule_pdfs()
 
     # один файл на печать: обложка + все листы по порядку
     pack_path = OUT / "00_komplekt_na_pechat.pdf"
@@ -1823,6 +1875,10 @@ PDF продублированы в `docs/print/` — их можно откры
 | `14_pravila_papy_A4.pdf` | правила папе: нужно / можно / нельзя | 1 | A4, для папы |
 | `15_pravila_mamy_A4.pdf` | правила маме: нужно / можно / нельзя | 1 | A4, для мамы |
 | `16_pravila_semyi_3xA4.pdf` | правила семьи одним файлом: детям, папе, маме | 3 страницы | A4: стр. 1 детям, стр. 2 папе, стр. 3 маме |
+| `13m_pravila_detey_mobile.pdf` | правила детям для телефона | по желанию | узкая страница, крупный текст; не для печати A4 |
+| `14m_pravila_papy_mobile.pdf` | правила папе для телефона | по желанию | узкая страница, крупный текст; не для печати A4 |
+| `15m_pravila_mamy_mobile.pdf` | правила маме для телефона | по желанию | узкая страница, крупный текст; не для печати A4 |
+| `16m_pravila_semyi_mobile.pdf` | правила семьи для телефона одним файлом | по желанию | детям, папе, маме; не для печати A4 |
 | `qr_nastavnik.png` | QR на свод | сколько нужно | Наклейка на папку, холодильник, бланки |
 
 ## Настройки принтера
