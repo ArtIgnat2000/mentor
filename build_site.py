@@ -32,6 +32,7 @@ PAGES_URL = "https://artignat2000.github.io/mentor/"
 PRINT_FILES = [
     ("00_komplekt_na_pechat.pdf", "Весь комплект одним файлом — обложка и все листы"),
     ("12_listy_poleznyh_del.pdf", "Листы полезных дел — неделя и месяц: зарядка, турник и другие дела"),
+    ("17_ezhednevny_list_del.pdf", "Лист на сегодня — зарядка, турник, доброе дело, помощь и своё дело"),
     ("16_pravila_semyi_3xA4.pdf", "Правила семьи — 3 страницы A4: детям, папе, маме"),
     ("13_pravila_detey_A4.pdf",  "Правила детям — на видное место: правило / можно / нельзя"),
     ("14_pravila_papy_A4.pdf",   "Правила папе — нужно / можно / нельзя"),
@@ -497,8 +498,9 @@ def build():
     mobile_block = (
         '<h2 class="sect-h">Правила семьи на телефоне</h2>'
         '<div class="quick">'
+        '<a class="q" href="children/index.html">🧒 Детский раздел</a>'
         '<a class="q" href="family/index.html">🏠 Семейный справочник</a>'
-        '<a class="q" href="parents/index.html">👪 Родителям: правила и методики</a>'
+        '<a class="q" href="parents/index.html">👪 Родителям: правила, ситуации, формы</a>'
         '<a class="q" href="mobile/index.html">📱 Все правила: детям, папе, маме</a>'
         '<a class="q" href="mobile/detyam.html">🧒 Детям</a>'
         '<a class="q" href="mobile/pape.html">👨 Папе</a>'
@@ -748,6 +750,8 @@ __PANES__
     # Для одиночного файла PDF остаются на опубликованном сайте; сама страница
     # по-прежнему автономна и не требует JavaScript. В docs/ ссылки относительные.
     standalone = page.replace('href="print/', f'href="{PAGES_URL}print/')
+    for folder in ("children/", "family/", "parents/", "mobile/"):
+        standalone = standalone.replace(f'href="{folder}', f'href="{PAGES_URL}{folder}')
     (ROOT / "nastavnik.html").write_text(standalone, encoding="utf-8")
     # .nojekyll: без него GitHub Pages прогоняет файлы через Jekyll
     (OUT / ".nojekyll").write_text("", encoding="utf-8")

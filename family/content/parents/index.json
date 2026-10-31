@@ -2,23 +2,386 @@
   "title": "Родителям",
   "pages": [
     {
+      "slug": "kak-polzovatsya",
+      "title": "Как пользоваться разделом",
+      "summary": "Быстрый маршрут: сейчас трудно, освежить правила, выбрать лист.",
+      "source": "kak-polzovatsya.md",
+      "group": "Начало",
+      "icon": "🧭",
+      "tag": "Старт",
+      "keywords": [
+        "как пользоваться",
+        "начать",
+        "неделя"
+      ]
+    },
+    {
+      "slug": "pravila-vzroslyh",
+      "title": "Общие правила для взрослых",
+      "summary": "Одна рамка для папы и мамы: безопасность, границы, ремонт.",
+      "source": "pravila-vzroslyh.md",
+      "group": "Правила",
+      "icon": "🤝",
+      "tag": "Взрослым",
+      "keywords": [
+        "правила",
+        "взрослые",
+        "папа",
+        "мама",
+        "границы",
+        "ремонт"
+      ],
+      "resources": [
+        {
+          "label": "Правила семьи: детям, папе, маме",
+          "href": "../print/16_pravila_semyi_3xA4.pdf",
+          "note": "Три отдельных листа A4",
+          "kind": "PDF"
+        },
+        {
+          "label": "Плакат на холодильник",
+          "href": "../print/01_na_holodilnik_A4.pdf",
+          "note": "",
+          "kind": "PDF"
+        }
+      ]
+    },
+    {
       "slug": "pravila-papy",
       "title": "Правила для папы",
-      "summary": "Нужно / можно / нельзя.",
-      "source": "generated:dad"
+      "summary": "Нужно / можно / нельзя. Отдельный лист для папы.",
+      "source": "generated:dad",
+      "group": "Правила",
+      "icon": "👨",
+      "tag": "Папе",
+      "keywords": [
+        "папа",
+        "правила",
+        "режим",
+        "границы"
+      ],
+      "resources": [
+        {
+          "label": "Правила папе A4",
+          "href": "../print/14_pravila_papy_A4.pdf",
+          "note": "",
+          "kind": "PDF"
+        },
+        {
+          "label": "Правила папе на телефон",
+          "href": "../print/14m_pravila_papy_mobile.pdf",
+          "note": "",
+          "kind": "PDF"
+        },
+        {
+          "label": "Памятка папе",
+          "href": "../print/08_pamyatka_pape.pdf",
+          "note": "",
+          "kind": "PDF"
+        }
+      ]
     },
     {
       "slug": "pravila-mamy",
       "title": "Правила для мамы",
-      "summary": "Нужно / можно / нельзя.",
-      "source": "generated:mom"
+      "summary": "Нужно / можно / нельзя. Отдельный лист для мамы.",
+      "source": "generated:mom",
+      "group": "Правила",
+      "icon": "👩",
+      "tag": "Маме",
+      "keywords": [
+        "мама",
+        "правила",
+        "ревность",
+        "личное время"
+      ],
+      "resources": [
+        {
+          "label": "Правила маме A4",
+          "href": "../print/15_pravila_mamy_A4.pdf",
+          "note": "",
+          "kind": "PDF"
+        },
+        {
+          "label": "Правила маме на телефон",
+          "href": "../print/15m_pravila_mamy_mobile.pdf",
+          "note": "",
+          "kind": "PDF"
+        },
+        {
+          "label": "Памятка маме",
+          "href": "../print/09_pamyatka_mame.pdf",
+          "note": "",
+          "kind": "PDF"
+        }
+      ]
+    },
+    {
+      "slug": "pravila-detey",
+      "title": "Правила для детей",
+      "summary": "Детские правила, чтобы открыть вместе и освежить договорённости.",
+      "source": "generated:children",
+      "group": "Правила",
+      "icon": "🧒",
+      "tag": "Детям",
+      "keywords": [
+        "дети",
+        "правила",
+        "можно",
+        "нельзя"
+      ],
+      "resources": [
+        {
+          "label": "Правила детям A4",
+          "href": "../print/13_pravila_detey_A4.pdf",
+          "note": "",
+          "kind": "PDF"
+        },
+        {
+          "label": "Правила детям на телефон",
+          "href": "../print/13m_pravila_detey_mobile.pdf",
+          "note": "",
+          "kind": "PDF"
+        }
+      ]
+    },
+    {
+      "slug": "situacii",
+      "title": "Типовые ситуации",
+      "summary": "Готовые шаги и фразы: вспышка, ссора, ревность, отказ, гаджет, ошибка.",
+      "source": "generated:situations",
+      "group": "Ситуации",
+      "icon": "💬",
+      "tag": "Быстро",
+      "keywords": [
+        "ситуации",
+        "истерика",
+        "ссора",
+        "ревность",
+        "отказ",
+        "гаджет",
+        "ошибка",
+        "сорвался"
+      ]
     },
     {
       "slug": "metodika-pylesos",
       "title": "Методика: отказ пылесосить",
       "summary": "Что делать, если ребёнок отказался, а задача осталась нерешённой.",
       "source": "metodika-pylesos.md",
-      "tag": "Методика"
+      "group": "Методики",
+      "icon": "🧹",
+      "tag": "Методика",
+      "keywords": [
+        "пылесос",
+        "отказ",
+        "уборка",
+        "дело",
+        "истерика"
+      ]
+    },
+    {
+      "slug": "pechatnye-formy",
+      "title": "Печатные формы",
+      "summary": "Все бланки, инструкции, примеры заполнения и анализа.",
+      "source": "pechatnye-formy.md",
+      "group": "Печатные формы",
+      "icon": "🖨️",
+      "tag": "Каталог",
+      "keywords": [
+        "печатные формы",
+        "бланки",
+        "pdf",
+        "инструкция",
+        "пример",
+        "анализ"
+      ],
+      "resources": [
+        {
+          "label": "Весь комплект одним файлом",
+          "href": "../print/00_komplekt_na_pechat.pdf",
+          "note": "18 страниц A4 и карточек",
+          "kind": "PDF"
+        }
+      ]
+    },
+    {
+      "slug": "forma-ezhednevnye-dela",
+      "title": "Ежедневные дела",
+      "summary": "Лист на сегодня, неделя и месяц: зарядка, турник, доброе дело, помощь.",
+      "source": "forma-ezhednevnye-dela.md",
+      "group": "Печатные формы",
+      "icon": "✅",
+      "tag": "Каждый день",
+      "keywords": [
+        "ежедневно",
+        "дела",
+        "зарядка",
+        "турник",
+        "неделя",
+        "месяц"
+      ],
+      "resources": [
+        {
+          "label": "Лист на сегодня",
+          "href": "../print/17_ezhednevny_list_del.pdf",
+          "note": "Новый лист на один день",
+          "kind": "PDF"
+        },
+        {
+          "label": "Полезные дела: неделя и месяц",
+          "href": "../print/12_listy_poleznyh_del.pdf",
+          "note": "Стр. 1 — неделя, стр. 2 — месяц",
+          "kind": "PDF"
+        }
+      ]
+    },
+    {
+      "slug": "forma-dobrye-dela",
+      "title": "Добрые дела",
+      "summary": "Копилка вклада в семью без баллов и сравнения.",
+      "source": "forma-dobrye-dela.md",
+      "group": "Печатные формы",
+      "icon": "💛",
+      "tag": "Доброта",
+      "keywords": [
+        "добрые дела",
+        "копилка",
+        "помощь",
+        "брат"
+      ],
+      "resources": [
+        {
+          "label": "Копилка добрых дел",
+          "href": "../print/06_kopilka_dobryh_del.pdf",
+          "note": "Месяц, по листу на ребёнка",
+          "kind": "PDF"
+        }
+      ]
+    },
+    {
+      "slug": "forma-turnik-zaryadka",
+      "title": "Зарядка и подтягивания",
+      "summary": "Дневник силы: факт, отдых, техника и личный прогресс.",
+      "source": "forma-turnik-zaryadka.md",
+      "group": "Печатные формы",
+      "icon": "💪",
+      "tag": "Движение",
+      "keywords": [
+        "турник",
+        "подтягивания",
+        "зарядка",
+        "дневник силы",
+        "тренировка"
+      ],
+      "resources": [
+        {
+          "label": "Дневник силы",
+          "href": "../print/10_dnevnik_sily.pdf",
+          "note": "Месяц и итоги недель",
+          "kind": "PDF"
+        }
+      ]
+    },
+    {
+      "slug": "forma-utro",
+      "title": "Карта утра",
+      "summary": "Понятный порядок утра без ежедневной проверки.",
+      "source": "forma-utro.md",
+      "group": "Печатные формы",
+      "icon": "🌅",
+      "tag": "Утро",
+      "keywords": [
+        "утро",
+        "режим",
+        "подъём",
+        "завтрак"
+      ],
+      "resources": [
+        {
+          "label": "Карта утра",
+          "href": "../print/02_karta_utra.pdf",
+          "note": "Месяц, по листу на ребёнка",
+          "kind": "PDF"
+        }
+      ]
+    },
+    {
+      "slug": "forma-pauza",
+      "title": "Пауза и шкала 1–5",
+      "summary": "Как заметить вспышку раньше и выбрать безопасное действие.",
+      "source": "forma-pauza.md",
+      "group": "Печатные формы",
+      "icon": "🌬️",
+      "tag": "Спокойствие",
+      "keywords": [
+        "пауза",
+        "шкала",
+        "злость",
+        "вспышка",
+        "успокоиться"
+      ],
+      "resources": [
+        {
+          "label": "Карта паузы",
+          "href": "../print/03_karta_pauzy.pdf",
+          "note": "Две карточки A5",
+          "kind": "PDF"
+        },
+        {
+          "label": "Шкала 1–5",
+          "href": "../print/04_shkala_1_5.pdf",
+          "note": "Две карточки A5",
+          "kind": "PDF"
+        }
+      ]
+    },
+    {
+      "slug": "forma-itogi-nedeli",
+      "title": "Итоги недели",
+      "summary": "Пять минут разговора: факты, что мешало, один следующий шаг.",
+      "source": "forma-itogi-nedeli.md",
+      "group": "Печатные формы",
+      "icon": "📅",
+      "tag": "Неделя",
+      "keywords": [
+        "итоги",
+        "неделя",
+        "разговор",
+        "анализ"
+      ],
+      "resources": [
+        {
+          "label": "Итоги недели",
+          "href": "../print/11_itogi_nedeli.pdf",
+          "note": "Две карточки на листе",
+          "kind": "PDF"
+        }
+      ]
+    },
+    {
+      "slug": "forma-samoproverka",
+      "title": "Самопроверка взрослого",
+      "summary": "Семь вопросов раз в две недели — для родителя, не для ребёнка.",
+      "source": "forma-samoproverka.md",
+      "group": "Печатные формы",
+      "icon": "🪞",
+      "tag": "Взрослому",
+      "keywords": [
+        "самопроверка",
+        "взрослый",
+        "крик",
+        "сравнение",
+        "усталость"
+      ],
+      "resources": [
+        {
+          "label": "Проверка «я не сбился»",
+          "href": "../print/07_proverka_ya_sbilsya.pdf",
+          "note": "Два бланка на листе",
+          "kind": "PDF"
+        }
+      ]
     }
   ]
 }

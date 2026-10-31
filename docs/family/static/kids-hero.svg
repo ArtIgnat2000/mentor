@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" role="img" aria-label="">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#dbeafe"/>
+      <stop offset="1" stop-color="#ecfdf5"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="224" height="164" rx="28" fill="url(#sky)"/>
+  <circle cx="186" cy="44" r="20" fill="#fbbf24"/>
+  <g stroke="#f59e0b" stroke-width="4" stroke-linecap="round">
+    <path d="M186 14v-8M186 82v-8M216 44h8M148 44h8M207 23l6-6M159 71l6-6M207 65l6 6M159 17l6 6"/>
+  </g>
+  <path d="M20 132c34-26 62-26 96 0s62 26 104 0v28H20z" fill="#86efac"/>
+  <path d="M20 146c40-20 74-20 108 0s62 18 92 0v14H20z" fill="#34d399" opacity=".7"/>
+  <g transform="translate(46 70)">
+    <path d="M0 18c18-10 36-10 54 0v44c-18-10-36-10-54 0z" fill="#fff" stroke="#2563eb" stroke-width="4"/>
+    <path d="M54 18c18-10 36-10 54 0v44c-18-10-36-10-54 0z" fill="#fff" stroke="#2563eb" stroke-width="4"/>
+    <path d="M54 18v44" stroke="#2563eb" stroke-width="4"/>
+    <path d="M12 30h30M12 42h30M66 30h30M66 42h30" stroke="#93c5fd" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(150 92) rotate(-18)">
+    <rect x="0" y="0" width="14" height="54" rx="4" fill="#f97316"/>
+    <path d="M0 54l7 14 7-14z" fill="#fde68a"/>
+    <path d="M4 62l3 6 3-6z" fill="#1f2937"/>
+    <rect x="0" y="0" width="14" height="10" rx="4" fill="#fb7185"/>
+  </g>
+  <circle cx="44" cy="42" r="12" fill="#f472b6"/>
+  <path d="M44 30v24M32 42h24" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <path d="M118 36l10-18 8 18-8 18z" fill="#60a5fa"/>
+  <path d="M118 36h18" stroke="#fff" stroke-width="3"/>
+</svg>

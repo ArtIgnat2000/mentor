@@ -1452,6 +1452,101 @@ def useful_deeds(c):
     useful_deeds_month(c)
 
 
+def daily_deeds_sheet(c):
+    """Один день: зарядка, турник, доброе дело, помощь, своё дело, сон."""
+    top = page_header(c, "Ежедневный лист · мои дела", "один день · без оценок")
+    f = Flow(c, M, A4W - M, top)
+    f.para("Мой лист на сегодня", size=20, leading=24, color=ACCENT,
+           font=SERIF_BOLD, space_after=3)
+    f.para("Выбери 2–3 дела. Отмечай сам. Пустая клетка — не долг, а подсказка на завтра.",
+           size=8.6, leading=11, color=MUTED, space_after=8)
+
+    y0 = f.y
+    field_line(c, f.x, y0 - 8, f.x + 92 * MM, "Имя:", size=8.4)
+    field_line(c, f.x + 100 * MM, y0 - 8, f.right, "Дата:", size=8.4)
+    f.y = y0 - 22
+
+    cols = [("Дело", 36), ("Что сделаю / минимум", 56), ("Получилось", 22),
+            ("Что помогло или мешало", 68)]
+    widths = [w * MM for _, w in cols]
+    scale = f.w / sum(widths)
+    widths = [w * scale for w in widths]
+    rows = [
+        ("Зарядка", "например: 5 минут разминки"),
+        ("Турник / движение", "повторы: ____ или другое движение"),
+        ("Доброе дело", "кому и чем помог"),
+        ("Помощь по дому", "моя маленькая часть"),
+        ("Моё дело", "школа, музыка, проект, чтение"),
+        ("Сон вовремя", "лёг в согласованное время"),
+    ]
+    head_h = 12 * MM
+    row_h = 21 * MM
+    table_top = f.y
+    table_h = head_h + row_h * len(rows)
+    table_bottom = table_top - table_h
+    panel(c, f.x, table_top - head_h, f.w, head_h, fill=TINT, stroke=LINE, radius=0)
+    xx = f.x
+    for (title, _), w in zip(cols, widths):
+        c.setFont(BOLD, 8)
+        c.setFillColor(ACCENT)
+        c.drawCentredString(xx + w / 2, table_top - head_h / 2 - 3, title)
+        xx += w
+
+    for i, (name, hint) in enumerate(rows):
+        y_top = table_top - head_h - i * row_h
+        y_bottom = y_top - row_h
+        if i % 2:
+            c.setFillColor(CREAM)
+            c.rect(f.x, y_bottom, f.w, row_h, stroke=0, fill=1)
+        c.setFont(BOLD, 9)
+        c.setFillColor(INK)
+        draw_wrapped(c, name, f.x + 6, y_top - 12, widths[0] - 12, 9, 11, BODY, BOLD, INK)
+        x1 = f.x + widths[0]
+        c.setFont(BODY, 7)
+        c.setFillColor(MUTED)
+        draw_wrapped(c, hint, x1 + 6, y_top - 12, widths[1] - 12, 7, 9, BODY, BODY, MUTED)
+        dotted(c, x1 + 6, x1 + widths[1] - 6, y_bottom + 12, DASH, 0.6)
+        x2 = x1 + widths[1]
+        box = 5 * MM
+        c.setStrokeColor(MUTED)
+        c.setLineWidth(0.7)
+        c.rect(x2 + widths[2] / 2 - box / 2, y_bottom + row_h / 2 - box / 2,
+               box, box, stroke=1, fill=0)
+        x3 = x2 + widths[2]
+        dotted(c, x3 + 6, x3 + widths[3] - 6, y_bottom + 14, DASH, 0.6)
+        dotted(c, x3 + 6, x3 + widths[3] - 6, y_bottom + 30, DASH, 0.6)
+        hline(c, f.x, f.right, y_bottom, LINE_SOFT, 0.5)
+
+    xx = f.x
+    for w in widths[:-1]:
+        xx += w
+        vline(c, xx, table_bottom, table_top, LINE_SOFT, 0.5)
+    c.setStrokeColor(LINE)
+    c.setLineWidth(0.8)
+    c.rect(f.x, table_bottom, f.w, table_h, stroke=1, fill=0)
+    f.y = table_bottom
+
+    panel_top = f.y - 6 * MM
+    panel_bottom = M + 14 * MM
+    panel(c, f.x, panel_bottom, f.w, panel_top - panel_bottom, fill=TINT, stroke=LINE, radius=5)
+    c.setFillColor(GOLD)
+    c.rect(f.x, panel_bottom, 2.4, panel_top - panel_bottom, stroke=0, fill=1)
+    x, right = f.x + 10, f.right - 10
+    c.setFont(BOLD, 10)
+    c.setFillColor(ACCENT)
+    c.drawString(x, panel_top - 18, "Мой маленький итог")
+    y = panel_top - 40
+    for question in ("Что у меня получилось?", "Что было трудно?", "Что попробую завтра?"):
+        field_line(c, x, y, right, question, size=8.4, gap=6)
+        y -= 24
+    c.setFont(BODY, 7)
+    c.setFillColor(MUTED)
+    c.drawString(x, panel_bottom + 10, "Можно ничего не писать: достаточно разговора со взрослым.")
+    page_footer(c, "Без баллов и сравнения. Взрослый спрашивает «как прошло?», а не «сделал?».",
+                right=f"версия {VERSION}")
+    c.showPage()
+
+
 def family_rules_children(c):
     top = page_header(c, "Правила семьи · детям", "A4 · повесить на видное место")
     f = Flow(c, M, A4W - M, top)
@@ -1710,6 +1805,7 @@ PACK_CONTENTS = [
     ("Дневник силы", "отметка за каждый день + итоги недели и месяца", "1 стр. A4 на ребёнка"),
     ("Итоги недели", "разговор на 5 минут и договорённость о поощрении", "1 лист = 2 карточки A5"),
     ("Листы полезных дел", "зарядка, турник и другие дела: неделя + месяц", "2 стр. A4 на ребёнка"),
+    ("Лист на сегодня", "один день: зарядка, турник, доброе дело, помощь, своё дело", "1 стр. A4 на ребёнка"),
     ("Правила семьи", "отдельные листы: детям, папе, маме", "3 стр. A4"),
 ]
 
@@ -1769,7 +1865,7 @@ def cover(c):
 
 
 # ------------------------------------------------------------------ сборка
-VERSION = "1.3 · 31.10.2026"
+VERSION = "1.4 · 31.10.2026"
 
 DOCUMENTS = [
     ("01_na_holodilnik_A4.pdf", "плакат на холодильник (A4)", A4W, A4H, _fridge_page),
@@ -1788,6 +1884,7 @@ DOCUMENTS = [
     ("13_pravila_detey_A4.pdf", "правила детям на видное место", A4W, A4H, family_rules_children),
     ("14_pravila_papy_A4.pdf", "правила папе: нужно / можно / нельзя", A4W, A4H, family_rules_dad),
     ("15_pravila_mamy_A4.pdf", "правила маме: нужно / можно / нельзя", A4W, A4H, family_rules_mom),
+    ("17_ezhednevny_list_del.pdf", "ежедневный лист дел на один день", A4W, A4H, daily_deeds_sheet),
 ]
 
 
@@ -1857,7 +1954,7 @@ PDF продублированы в `docs/print/` — их можно откры
 
 | Файл | Что это | Сколько | Как |
 |---|---|---|---|
-| `00_komplekt_na_pechat.pdf` | **весь комплект одним файлом**: обложка + все листы по порядку | 17 страниц | проще всего: печать «все страницы», дальше разрезать карточки |
+| `00_komplekt_na_pechat.pdf` | **весь комплект одним файлом**: обложка + все листы по порядку | 18 страниц | проще всего: печать «все страницы», дальше разрезать карточки |
 | `01_na_holodilnik_A4.pdf` | пять правил + стоп-лист + три фразы | 1–2 | A4, 100 %. Один лист на кухню, второй — наставнику в папку |
 | `01b_na_holodilnik_A5_2up.pdf` | то же в размере A5 | по желанию | A4, разрезать пополам: два маленьких плаката (холодильник + машина) |
 | `02_karta_utra.pdf` | карта утра на месяц | по 1 на мальчика в месяц | A4. Имя вписать, остальное ребёнок отмечает сам |
@@ -1875,6 +1972,7 @@ PDF продублированы в `docs/print/` — их можно откры
 | `14_pravila_papy_A4.pdf` | правила папе: нужно / можно / нельзя | 1 | A4, для папы |
 | `15_pravila_mamy_A4.pdf` | правила маме: нужно / можно / нельзя | 1 | A4, для мамы |
 | `16_pravila_semyi_3xA4.pdf` | правила семьи одним файлом: детям, папе, маме | 3 страницы | A4: стр. 1 детям, стр. 2 папе, стр. 3 маме |
+| `17_ezhednevny_list_del.pdf` | ежедневный лист дел на один день | по 1 на ребёнка в день | A4. Зарядка, турник, доброе дело, помощь, своё дело, сон; без баллов |
 | `13m_pravila_detey_mobile.pdf` | правила детям для телефона | по желанию | узкая страница, крупный текст; не для печати A4 |
 | `14m_pravila_papy_mobile.pdf` | правила папе для телефона | по желанию | узкая страница, крупный текст; не для печати A4 |
 | `15m_pravila_mamy_mobile.pdf` | правила маме для телефона | по желанию | узкая страница, крупный текст; не для печати A4 |

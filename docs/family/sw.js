@@ -1,5 +1,5 @@
-const CACHE = "family-public-966cc0794302";
-const FILES = ["./", "./index.html", "./static/app.css", "./static/app.js", "./manifest.webmanifest", "./static/icons/icon-192.png", "./static/icons/icon-512.png", "./nashi-pravila.html", "./print-nashi-pravila.html", "./kak-polzovatsya.html", "./print-kak-polzovatsya.html"];
+const CACHE = "family-public-300371f0488e";
+const FILES = ["./", "./index.html", "./static/app.css", "./static/app.js", "./static/kids-hero.svg", "./manifest.webmanifest", "./static/icons/icon-192.png", "./static/icons/icon-512.png", "./nashi-pravila.html", "./print-nashi-pravila.html", "./kak-polzovatsya.html", "./print-kak-polzovatsya.html"];
 const BASE = new URL('./', location);
 const INDEX = new URL('./index.html', BASE).href;
 self.addEventListener('install', e => {
@@ -11,9 +11,12 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
-  if (url.origin !== BASE.origin || !url.pathname.startsWith(BASE.pathname)) return;
-  e.respondWith(caches.open(CACHE).then(cache => cache.match(e.request).then(hit => hit || fetch(e.request).then(res => {
-    if (res.ok) { const copy = res.clone(); cache.put(e.request, copy); }
-    return res;
-  }).catch(() => e.request.mode === 'navigate' ? cache.match(INDEX) : Response.error()))));
+  e.respondWith(caches.open(CACHE).then(cache => cache.match(e.request).then(hit => {
+    if (hit) return hit;
+    if (url.origin !== BASE.origin || !url.pathname.startsWith(BASE.pathname)) return fetch(e.request);
+    return fetch(e.request).then(res => {
+      if (res.ok) { const copy = res.clone(); cache.put(e.request, copy); }
+      return res;
+    }).catch(() => e.request.mode === 'navigate' ? cache.match(INDEX) : Response.error());
+  })));
 });

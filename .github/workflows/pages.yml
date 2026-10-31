@@ -32,7 +32,7 @@ jobs:
       - name: Пересобрать страницу из markdown
         run: python3 build_site.py
 
-      # Публикуем оба открытых справочника: «Семья» и «Родителям».
+      # Публикуем открытые разделы: «Детям», «Семья» и «Родителям».
       # Статические страницы доступны без входа; секретные материалы сюда не кладём.
       - name: Собрать открытые справочники
         run: python3 -m family.build_public
@@ -44,8 +44,10 @@ jobs:
         run: |
           git --no-pager diff --stat -- docs
           test -f docs/index.html
+          test -f docs/children/index.html
           test -f docs/family/index.html
           test -f docs/parents/index.html
+          test -f docs/print/17_ezhednevny_list_del.pdf
 
       - uses: actions/configure-pages@v5
 
@@ -84,6 +86,23 @@ jobs:
           head -c 400 /tmp/site.html || true
           exit 1
 
+      - name: Проверить детский раздел
+        run: |
+          URL="${{ steps.deployment.outputs.page_url }}children/"
+          for i in $(seq 1 18); do
+            code=$(curl -sL -o /tmp/children.html -w "%{http_code}" "$URL" || echo 000)
+            if [ "$code" = "200" ] && grep -q 'Мой раздел' /tmp/children.html \
+               && grep -q 'nashi-pravila.html' /tmp/children.html \
+               && grep -q 'moi-listy.html' /tmp/children.html; then
+              echo "OK: $URL"
+              exit 0
+            fi
+            echo "попытка $i: код $code — ждём публикацию (10 с)"
+            sleep 10
+          done
+          echo "::error::детский раздел не отдаётся"
+          exit 1
+
       - name: Проверить открытый семейный справочник
         run: |
           URL="${{ steps.deployment.outputs.page_url }}family/"
@@ -108,6 +127,8 @@ jobs:
             if [ "$code" = "200" ] && grep -q 'Родителям' /tmp/parents.html \
                && grep -q 'pravila-papy.html' /tmp/parents.html \
                && grep -q 'pravila-mamy.html' /tmp/parents.html \
+               && grep -q 'situacii.html' /tmp/parents.html \
+               && grep -q 'pechatnye-formy.html' /tmp/parents.html \
                && grep -q 'metodika-pylesos.html' /tmp/parents.html; then
               echo "OK: $URL"
               break
@@ -123,7 +144,14 @@ jobs:
           code=$(curl -sL -o /tmp/method.html -w "%{http_code}" "$METHOD" || echo 000)
           test "$code" = "200" || { echo "::error::методика не отдаётся"; exit 1; }
           grep -q 'отказывается пылесосить' /tmp/method.html || { echo "::error::текст методики не опубликован"; exit 1; }
-          echo "OK: правила и методика доступны без входа"
+          FORM="${{ steps.deployment.outputs.page_url }}parents/forma-ezhednevnye-dela.html"
+          code=$(curl -sL -o /tmp/form.html -w "%{http_code}" "$FORM" || echo 000)
+          test "$code" = "200" || { echo "::error::инструкция к форме не отдаётся"; exit 1; }
+          grep -q 'Пример анализа' /tmp/form.html || { echo "::error::нет примера анализа"; exit 1; }
+          PDF="${{ steps.deployment.outputs.page_url }}print/17_ezhednevny_list_del.pdf"
+          code=$(curl -sL -o /tmp/daily.pdf -w "%{http_code}" "$PDF" || echo 000)
+          test "$code" = "200" || { echo "::error::ежедневный лист не отдаётся"; exit 1; }
+          echo "OK: правила, ситуации, формы и методика доступны без входа"
 
       - name: Проверить прежний зашифрованный файл semya.html
         run: |
