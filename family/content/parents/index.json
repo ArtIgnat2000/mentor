@@ -1,0 +1,24 @@
+{
+  "title": "Родителям",
+  "pages": [
+    {
+      "slug": "pravila-papy",
+      "title": "Правила для папы",
+      "summary": "Нужно / можно / нельзя.",
+      "source": "generated:dad"
+    },
+    {
+      "slug": "pravila-mamy",
+      "title": "Правила для мамы",
+      "summary": "Нужно / можно / нельзя.",
+      "source": "generated:mom"
+    },
+    {
+      "slug": "metodika-pylesos",
+      "title": "Методика: отказ пылесосить",
+      "summary": "Что делать, если ребёнок отказался, а задача осталась нерешённой.",
+      "source": "metodika-pylesos.md",
+      "tag": "Методика"
+    }
+  ]
+}
