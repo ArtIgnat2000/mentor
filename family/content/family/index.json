@@ -1,0 +1,17 @@
+{
+  "title": "Семья",
+  "pages": [
+    {
+      "slug": "nashi-pravila",
+      "title": "Наши правила",
+      "summary": "Правила для детей: что можно и что нельзя.",
+      "source": "generated:children"
+    },
+    {
+      "slug": "kak-polzovatsya",
+      "title": "Как пользоваться справочником",
+      "summary": "Короткая инструкция для семьи.",
+      "source": "kak-polzovatsya.md"
+    }
+  ]
+}
