@@ -16,19 +16,20 @@ import re
 import html
 import json
 import hashlib
-import shutil
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "docs"
 
-# Адрес страницы на GitHub Pages. Нужен только для ссылок на печатные PDF:
-# абсолютная ссылка работает и из одиночного файла nastavnik.html, открытого в «Файлах».
+# Адрес страницы на GitHub Pages. В docs/index.html ссылки на PDF относительные
+# (работают на любом хосте и в локальном предпросмотре). Только одиночный
+# nastavnik.html получает абсолютные ссылки: рядом с ним в «Файлах» нет папки print/.
 PAGES_URL = "https://artignat2000.github.io/mentor/"
 
 # Печатные материалы: (файл в docs/print/, подпись). Собирает build_print.py.
 PRINT_FILES = [
     ("00_komplekt_na_pechat.pdf", "Весь комплект одним файлом — обложка и все листы"),
+    ("12_listy_poleznyh_del.pdf", "Листы полезных дел — неделя и месяц: зарядка, турник и другие дела"),
     ("01_na_holodilnik_A4.pdf",  "Пять правил, стоп-лист, три фразы — на холодильник"),
     ("01b_na_holodilnik_A5_2up.pdf", "То же в размере A5 — два экземпляра на листе"),
     ("02_karta_utra.pdf",        "Карта утра — на месяц (по одной на каждого мальчика)"),
@@ -317,13 +318,15 @@ def build():
             '<h2 class="sect-h">Печатные материалы</h2>'
             '<div class="print-list">'
             + "".join(
-                f'<a class="pdf" href="{PAGES_URL}print/{name}">'
+                f'<a class="pdf" href="print/{name}">'
                 f'<span class="pdf-ico" aria-hidden="true">🖨</span>'
                 f'<span class="pdf-t">{html.escape(label)}</span></a>'
                 for name, label in links
             )
             + "</div>"
-            '<p class="pdf-note">Открываются в Safari, оттуда — «Печать» или сохранить в «Файлы». '
+            '<p class="pdf-note">Листы полезных дел: стр. 1 — неделя, стр. 2 — месяц; '
+            'печатать отдельно каждому ребёнку.<br>'
+            'Открываются в Safari, оттуда — «Печать» или сохранить в «Файлы». '
             'Печатать на A4, без масштабирования (100%).</p>'
         )
     else:
@@ -567,7 +570,10 @@ __PANES__
 
     OUT.mkdir(exist_ok=True)
     (OUT / "index.html").write_text(page, encoding="utf-8")
-    shutil.copy(OUT / "index.html", ROOT / "nastavnik.html")
+    # Для одиночного файла PDF остаются на опубликованном сайте; сама страница
+    # по-прежнему автономна и не требует JavaScript. В docs/ ссылки относительные.
+    standalone = page.replace('href="print/', f'href="{PAGES_URL}print/')
+    (ROOT / "nastavnik.html").write_text(standalone, encoding="utf-8")
     # .nojekyll: без него GitHub Pages прогоняет файлы через Jekyll
     (OUT / ".nojekyll").write_text("", encoding="utf-8")
     # версия офлайн-кэша: обновляется здесь, чтобы страницу можно было пересобрать

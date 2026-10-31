@@ -1252,6 +1252,200 @@ def _weekly_card(c, W, H, m=11 * MM):
     page_footer(c, "Считается по отметкам «Дневника силы».", width=W, m=m)
 
 
+# ------------------------------------------------------------------ 12. листы полезных дел
+# Один набор пунктов для обоих листов. Зарядка и турник намеренно разделены;
+# последний пункт ребёнок выбирает сам. Это не замена «Дневнику силы» и не
+# новая система поощрений: только место для ежедневных отметок.
+# (заголовок, подсказка, ширина месячной колонки в мм, тип клетки)
+DEED_COLUMNS = [
+    ("Зарядка", ("посильный", "комплекс"), 20, "check"),
+    ("Турник", ("галочка или", "повторы"), 21, "reps"),
+    ("Созидание", ("фортепиано", "или IT"), 22, "check"),
+    ("Доброе дело", ("брату или", "родителям"), 23, "check"),
+    ("Помощь", ("по дому",), 20, "check"),
+    ("Отбой", ("вовремя",), 18, "check"),
+    ("Свой пункт", ("по желанию",), 22, "check"),
+]
+
+
+def _deeds_intro(c, weekly):
+    period = "неделя" if weekly else "месяц"
+    top = page_header(c, "Ежедневные отметки · полезные дела",
+                      f"стр. {'1' if weekly else '2'} · {period}")
+    f = Flow(c, M, A4W - M, top)
+    f.para(f"Полезные дела · {period}", size=19, leading=23,
+           color=ACCENT, font=SERIF_BOLD, space_after=3)
+    f.para("Отмечает сам ребёнок. Это личный лист, а не соревнование с братом.",
+           size=8.4, leading=10.5, color=MUTED, space_after=8)
+
+    y0 = f.y
+    field_line(c, f.x, y0 - 8, f.x + 80 * MM, "Имя:", size=8)
+    if weekly:
+        field_line(c, f.x + 88 * MM, y0 - 8, f.x + 132 * MM, "Неделя: с", size=8)
+        field_line(c, f.x + 137 * MM, y0 - 8, f.right, "по", size=8)
+    else:
+        field_line(c, f.x + 88 * MM, y0 - 8, f.right, "Месяц / год:", size=8)
+    f.y = y0 - 21
+    field_line(c, f.x, f.y - 8, f.right,
+               "Мой пункт (выбрать по желанию):", size=8)
+    f.y -= 22
+    f.para("✓ — сделал. В графе «Турник» можно записать число повторов вместо галочки. "
+           "Начните с 2–3 дел. Нагрузка посильная; при плохом самочувствии — отдых.",
+           size=7.4, leading=9.6, color=MUTED, space_after=7)
+    return f
+
+
+def _deeds_column_header(c, x, w, y_center, head_h, title, hint, weekly):
+    """Заголовок из названия и 1–2 подсказок; проверяем ширину до отрисовки."""
+    title_size, hint_size = (7.5, 6.2) if weekly else (6.7, 5.5)
+    lead = 10 if weekly else 8
+    lines = [(title, BOLD, title_size, ACCENT)]
+    lines += [(part, BODY, hint_size, MUTED) for part in hint]
+    block_h = title_size + (len(lines) - 1) * lead
+    if block_h > head_h - 6:
+        raise SystemExit(f"полезные дела: высокий заголовок «{title}»")
+    y = y_center + block_h / 2 - title_size * 0.78
+    for text, font, size, color in lines:
+        if c.stringWidth(text, font, size) > w - 6:
+            raise SystemExit(f"полезные дела: узкая колонка «{text}»")
+        c.setFont(font, size)
+        c.setFillColor(color)
+        c.drawCentredString(x + w / 2, y, text)
+        y -= lead
+
+
+def _deeds_columns(weekly, available_w):
+    day_w = (18 if weekly else 11) * MM
+    cols = [("День", ("дата",) if weekly else (), day_w / MM, "day")]
+    cols += DEED_COLUMNS
+    if weekly:
+        # Равномерные широкие клетки для всех семи дел, без пустой полосы справа.
+        habit_w = (available_w - day_w) / len(DEED_COLUMNS)
+        widths = [day_w] + [habit_w] * len(DEED_COLUMNS)
+    else:
+        cols.append(("Заметка", ("по желанию",), 25, "note"))
+        widths = [col[2] * MM for col in cols]
+        scale = available_w / sum(widths)
+        widths = [w * scale for w in widths]
+    return cols, widths
+
+
+def _deeds_table(c, f, weekly):
+    cols, widths = _deeds_columns(weekly, f.w)
+    head_h = (16 if weekly else 14) * MM
+    row_h = (18 if weekly else 5.2) * MM
+    days = 7 if weekly else 31
+    table_h = head_h + days * row_h
+    reserve = (58 if weekly else 34) * MM
+    if f.y - table_h < M + reserve:
+        raise SystemExit("полезные дела: таблица не оставляет места для итогов")
+
+    table_top = f.y
+    table_bottom = table_top - table_h
+    panel(c, f.x, table_top - head_h, f.w, head_h,
+          fill=TINT, stroke=LINE, radius=0)
+    xx = f.x
+    for (title, hint, _, _), w in zip(cols, widths):
+        _deeds_column_header(c, xx, w, table_top - head_h / 2,
+                             head_h, title, hint, weekly)
+        xx += w
+
+    # Чередуем фон строк; числа и клетки не зависят от цвета.
+    for i in range(days):
+        y_top = table_top - head_h - i * row_h
+        y_bottom = y_top - row_h
+        if i % 2:
+            c.setFillColor(CREAM)
+            c.rect(f.x, y_bottom, f.w, row_h, stroke=0, fill=1)
+        xx = f.x
+        for (_, _, _, kind), w in zip(cols, widths):
+            if kind == "day":
+                c.setFont(BOLD if weekly else BODY, 9 if weekly else 7)
+                c.setFillColor(INK if weekly else MUTED)
+                if weekly:
+                    c.drawCentredString(xx + w / 2, y_bottom + row_h / 2 + 3,
+                                        DAYS_SHORT[i])
+                    dotted(c, xx + 5 * MM, xx + w - 5 * MM,
+                           y_bottom + 9, DASH, 0.6)
+                else:
+                    c.drawCentredString(xx + w / 2, y_bottom + row_h / 2 - 2.4,
+                                        str(i + 1))
+            elif kind == "check":
+                box = (5 if weekly else 4) * MM
+                c.setStrokeColor(MUTED)
+                c.setLineWidth(0.65)
+                c.rect(xx + (w - box) / 2, y_bottom + (row_h - box) / 2,
+                       box, box, stroke=1, fill=0)
+            # Турник: свободное место для галочки ИЛИ числа, без второй клетки.
+            # Заметка: свободное место для короткой записи от руки.
+            xx += w
+        hline(c, f.x, f.right, y_bottom,
+              LINE if weekly or (i + 1) % 7 == 0 else LINE_SOFT,
+              0.8 if weekly or (i + 1) % 7 == 0 else 0.45)
+
+    xx = f.x
+    for w in widths[:-1]:
+        xx += w
+        vline(c, xx, table_bottom, table_top, LINE_SOFT, 0.45)
+    c.setStrokeColor(LINE)
+    c.setLineWidth(0.8)
+    c.rect(f.x, table_bottom, f.w, table_h, stroke=1, fill=0)
+    f.y = table_bottom
+    return f
+
+
+def _deeds_reflection(c, f, weekly):
+    top = f.y - (5 if weekly else 4) * MM
+    bottom = M + (14 if weekly else 12) * MM
+    if top - bottom < (45 if weekly else 25) * MM:
+        raise SystemExit("полезные дела: не влезает блок разговора")
+    panel(c, f.x, bottom, f.w, top - bottom, fill=TINT, stroke=LINE, radius=4)
+    c.setFillColor(GOLD)
+    c.rect(f.x, bottom, 2.2, top - bottom, stroke=0, fill=1)
+    x, right = f.x + 10, f.right - 10
+    c.setFont(BOLD, 9.5 if weekly else 8.5)
+    c.setFillColor(ACCENT)
+    c.drawString(x, top - 17, "В конце недели · поговорить, не проверять" if weekly
+                 else "В конце месяца · две строки для себя")
+    questions = (("Что у меня получилось?",
+                  "Что мешало и какая помощь нужна?",
+                  "Что продолжу на следующей неделе?") if weekly else
+                 ("Что стало получаться легче?",
+                  "Что хочу продолжить в следующем месяце?"))
+    y = top - (42 if weekly else 36)
+    for question in questions:
+        field_line(c, x, y, right, question, size=8.2 if weekly else 7.6, gap=6)
+        y -= 28 if weekly else 20
+    c.setFont(BODY, 7)
+    c.setFillColor(MUTED)
+    c.drawString(x, bottom + 10,
+                 "Можно ничего не писать: достаточно разговора." if weekly else
+                 "Если в месяце меньше 31 дня, лишние строки оставьте пустыми.")
+    page_footer(c, "Пустая клетка — не долг. Отмечаем действия, не оцениваем ребёнка.",
+                right=f"версия {VERSION}")
+
+
+def useful_deeds_week(c):
+    """Страница 1: семь крупных строк, дата каждого дня и три вопроса внизу."""
+    f = _deeds_intro(c, weekly=True)
+    _deeds_table(c, f, weekly=True)
+    _deeds_reflection(c, f, weekly=True)
+    c.showPage()
+
+
+def useful_deeds_month(c):
+    """Страница 2: все 31 дней, отдельные зарядка и турник, место для заметки."""
+    f = _deeds_intro(c, weekly=False)
+    _deeds_table(c, f, weekly=False)
+    _deeds_reflection(c, f, weekly=False)
+    c.showPage()
+
+
+def useful_deeds(c):
+    useful_deeds_week(c)
+    useful_deeds_month(c)
+
+
 # ------------------------------------------------------------------ обложка
 PACK_CONTENTS = [
     ("Плакат на холодильник", "пять правил, стоп-лист, три фразы-выручалочки", "1 стр. A4"),
@@ -1265,6 +1459,7 @@ PACK_CONTENTS = [
     ("Памятка маме", "что говорить и чего не говорить про ревность", "1 стр. A4"),
     ("Дневник силы", "отметка за каждый день + итоги недели и месяца", "1 стр. A4 на ребёнка"),
     ("Итоги недели", "разговор на 5 минут и договорённость о поощрении", "1 лист = 2 карточки A5"),
+    ("Листы полезных дел", "зарядка, турник и другие дела: неделя + месяц", "2 стр. A4 на ребёнка"),
 ]
 
 
@@ -1323,7 +1518,7 @@ def cover(c):
 
 
 # ------------------------------------------------------------------ сборка
-VERSION = "1.0 · 30.10.2026"
+VERSION = "1.1 · 31.10.2026"
 
 DOCUMENTS = [
     ("01_na_holodilnik_A4.pdf", "плакат на холодильник (A4)", A4W, A4H, _fridge_page),
@@ -1338,6 +1533,7 @@ DOCUMENTS = [
     ("09_pamyatka_mame.pdf", "памятка маме", A4W, A4H, memo_mom),
     ("10_dnevnik_sily.pdf", "дневник силы на месяц", A4W, A4H, daily_diary),
     ("11_itogi_nedeli.pdf", "итоги недели (2 шт. на листе)", A4H, A4W, weekly_results),
+    ("12_listy_poleznyh_del.pdf", "полезные дела: неделя + месяц", A4W, A4H, useful_deeds),
 ]
 
 
@@ -1390,7 +1586,7 @@ PDF продублированы в `docs/print/` — их можно откры
 
 | Файл | Что это | Сколько | Как |
 |---|---|---|---|
-| `00_komplekt_na_pechat.pdf` | **весь комплект одним файлом**: обложка + все листы по порядку | 10 страниц | проще всего: печать «все страницы», дальше разрезать карточки |
+| `00_komplekt_na_pechat.pdf` | **весь комплект одним файлом**: обложка + все листы по порядку | 14 страниц | проще всего: печать «все страницы», дальше разрезать карточки |
 | `01_na_holodilnik_A4.pdf` | пять правил + стоп-лист + три фразы | 1–2 | A4, 100 %. Один лист на кухню, второй — наставнику в папку |
 | `01b_na_holodilnik_A5_2up.pdf` | то же в размере A5 | по желанию | A4, разрезать пополам: два маленьких плаката (холодильник + машина) |
 | `02_karta_utra.pdf` | карта утра на месяц | по 1 на мальчика в месяц | A4. Имя вписать, остальное ребёнок отмечает сам |
@@ -1403,6 +1599,7 @@ PDF продублированы в `docs/print/` — их можно откры
 | `09_pamyatka_mame.pdf` | памятка маме | 1 | A4. Отдать лично и сказать: «это шпаргалка, а не оценка» |
 | `10_dnevnik_sily.pdf` | дневник силы на месяц: отметка за каждый день + итоги недель и месяца | по 1 на мальчика в месяц | A4. Имя вписать, отметки ставит сам ребёнок |
 | `11_itogi_nedeli.pdf` | итоги недели: разговор на 5 минут и договорённость о поощрении, 2 шт. на листе | 1 лист на мальчика в неделю | A4, разрезать: карточка на неделю каждому |
+| `12_listy_poleznyh_del.pdf` | полезные дела: неделя с крупными клетками + месяц на 31 день | стр. 1 — по 1 на мальчика в неделю; стр. 2 — по 1 в месяц | A4, односторонняя печать. Зарядка и турник отдельно, свой пункт по желанию |
 | `qr_nastavnik.png` | QR на свод | сколько нужно | Наклейка на папку, холодильник, бланки |
 
 ## Настройки принтера

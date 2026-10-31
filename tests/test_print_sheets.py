@@ -1,0 +1,85 @@
+"""Проверки новых листов и сборки PDF: python -m unittest discover -s tests -v."""
+import contextlib
+import io
+from pathlib import Path
+import re
+import tempfile
+import unittest
+
+from reportlab.pdfgen import canvas
+
+import build_print as bp
+from printkit import A4H, A4W, MM
+
+
+def pdf_page_count(data):
+    # ReportLab оставляет объекты страниц несжатыми; потоки содержимого сжаты.
+    return len(re.findall(rb"/Type\s*/Page\b", data))
+
+
+class UsefulDeedsTests(unittest.TestCase):
+    def test_seven_habits_and_separate_exercise_and_bar(self):
+        self.assertEqual(len(bp.DEED_COLUMNS), 7)
+        self.assertEqual(bp.DEED_COLUMNS[0][0], "Зарядка")
+        self.assertEqual(bp.DEED_COLUMNS[1][0], "Турник")
+        self.assertEqual(bp.DEED_COLUMNS[1][3], "reps")
+        self.assertEqual(bp.DEED_COLUMNS[-1][0], "Свой пункт")
+
+    def test_columns_fill_page_without_empty_strip(self):
+        available = A4W - 2 * bp.M
+        for weekly in (True, False):
+            with self.subTest(weekly=weekly):
+                cols, widths = bp._deeds_columns(weekly, available)
+                self.assertEqual(len(cols), len(widths))
+                self.assertAlmostEqual(sum(widths), available)
+                self.assertTrue(all(w > 10 * MM for w in widths))
+                self.assertEqual(len(cols), 8 if weekly else 9)
+                if weekly:
+                    self.assertAlmostEqual(widths[1], widths[-1])
+                    self.assertGreaterEqual(widths[1], 23 * MM)
+
+    def test_two_portrait_a4_pages_render(self):
+        buf = io.BytesIO()
+        c = canvas.Canvas(buf, pagesize=(A4W, A4H))
+        bp.useful_deeds(c)
+        c.save()
+        data = buf.getvalue()
+        self.assertEqual(pdf_page_count(data), 2)
+        boxes = re.findall(rb"/MediaBox\s*\[([^\]]+)\]", data)
+        self.assertEqual(len(boxes), 2)
+        for box in boxes:
+            x0, y0, x1, y1 = map(float, box.split())
+            self.assertAlmostEqual(x1 - x0, A4W, places=3)
+            self.assertAlmostEqual(y1 - y0, A4H, places=3)
+            self.assertLess(x1, y1)
+
+    def test_build_copies_and_full_pack(self):
+        old_out, old_docs = bp.OUT, bp.DOCS_PRINT
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            bp.OUT = root / "print"
+            bp.DOCS_PRINT = root / "docs" / "print"
+            try:
+                with contextlib.redirect_stdout(io.StringIO()):
+                    bp.main()
+            finally:
+                bp.OUT, bp.DOCS_PRINT = old_out, old_docs
+
+            for name, _, _, _, _ in bp.DOCUMENTS:
+                self.assertEqual((bp.OUT / name).read_bytes(),
+                                 (bp.DOCS_PRINT / name).read_bytes())
+            sheets = (bp.OUT / "12_listy_poleznyh_del.pdf").read_bytes()
+            self.assertEqual(pdf_page_count(sheets), 2)
+            pack = (bp.OUT / "00_komplekt_na_pechat.pdf").read_bytes()
+            expected = 1 + sum(2 if name == "12_listy_poleznyh_del.pdf" else 1
+                               for name, _, _, _, _ in bp.DOCUMENTS
+                               if not name.startswith("01b"))
+            self.assertEqual(pdf_page_count(pack), expected)
+            self.assertEqual(expected, 14)
+            readme = (bp.OUT / "README.md").read_text(encoding="utf-8")
+            self.assertIn("12_listy_poleznyh_del.pdf", readme)
+            self.assertIn("14 страниц", readme)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -1,5 +1,7 @@
 # архив комплекта собирается make_pack.py и не нужен в репозитории
 nastavnik_pack.zip
+.venv/
+.preview/
 __pycache__/
 *.pyc
 .DS_Store
