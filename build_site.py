@@ -498,6 +498,7 @@ def build():
         '<h2 class="sect-h">Правила семьи на телефоне</h2>'
         '<div class="quick">'
         '<a class="q" href="family/index.html">🏠 Семейный справочник</a>'
+        '<a class="q" href="parents/index.html">👪 Родителям: правила и методики</a>'
         '<a class="q" href="mobile/index.html">📱 Все правила: детям, папе, маме</a>'
         '<a class="q" href="mobile/detyam.html">🧒 Детям</a>'
         '<a class="q" href="mobile/pape.html">👨 Папе</a>'

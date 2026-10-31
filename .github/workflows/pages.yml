@@ -32,15 +32,20 @@ jobs:
       - name: Пересобрать страницу из markdown
         run: python3 build_site.py
 
-      # Публикуем только открытый семейный контур. Родительские методики
-      # требуют серверного входа и в артефакт Pages не попадают.
-      - name: Собрать открытый семейный справочник
+      # Публикуем оба открытых справочника: «Семья» и «Родителям».
+      # Статические страницы доступны без входа; секретные материалы сюда не кладём.
+      - name: Собрать открытые справочники
         run: python3 -m family.build_public
+
+      - name: Проверить справочники
+        run: python3 -m unittest tests.test_family_app tests.test_family_public -v
 
       - name: Что изменилось после пересборки
         run: |
           git --no-pager diff --stat -- docs
           test -f docs/index.html
+          test -f docs/family/index.html
+          test -f docs/parents/index.html
 
       - uses: actions/configure-pages@v5
 
@@ -79,14 +84,55 @@ jobs:
           head -c 400 /tmp/site.html || true
           exit 1
 
-      - name: Проверить закрытый раздел «Родителям»
+      - name: Проверить открытый семейный справочник
+        run: |
+          URL="${{ steps.deployment.outputs.page_url }}family/"
+          for i in $(seq 1 18); do
+            code=$(curl -sL -o /tmp/family.html -w "%{http_code}" "$URL" || echo 000)
+            if [ "$code" = "200" ] && grep -q 'Семейный справочник' /tmp/family.html \
+               && grep -q 'nashi-pravila.html' /tmp/family.html; then
+              echo "OK: $URL"
+              exit 0
+            fi
+            echo "попытка $i: код $code — ждём публикацию (10 с)"
+            sleep 10
+          done
+          echo "::error::семейный справочник не отдаётся"
+          exit 1
+
+      - name: Проверить открытый раздел «Родителям»
+        run: |
+          URL="${{ steps.deployment.outputs.page_url }}parents/"
+          for i in $(seq 1 18); do
+            code=$(curl -sL -o /tmp/parents.html -w "%{http_code}" "$URL" || echo 000)
+            if [ "$code" = "200" ] && grep -q 'Родителям' /tmp/parents.html \
+               && grep -q 'pravila-papy.html' /tmp/parents.html \
+               && grep -q 'pravila-mamy.html' /tmp/parents.html \
+               && grep -q 'metodika-pylesos.html' /tmp/parents.html; then
+              echo "OK: $URL"
+              break
+            fi
+            echo "попытка $i: код $code — ждём публикацию (10 с)"
+            sleep 10
+          done
+          grep -q 'metodika-pylesos.html' /tmp/parents.html || { echo "::error::раздел «Родителям» не отдаётся"; exit 1; }
+          if grep -q 'type="password"' /tmp/parents.html; then
+            echo "::error::в открытом разделе осталась форма входа"; exit 1
+          fi
+          METHOD="${{ steps.deployment.outputs.page_url }}parents/metodika-pylesos.html"
+          code=$(curl -sL -o /tmp/method.html -w "%{http_code}" "$METHOD" || echo 000)
+          test "$code" = "200" || { echo "::error::методика не отдаётся"; exit 1; }
+          grep -q 'отказывается пылесосить' /tmp/method.html || { echo "::error::текст методики не опубликован"; exit 1; }
+          echo "OK: правила и методика доступны без входа"
+
+      - name: Проверить прежний зашифрованный файл semya.html
         run: |
           URL="${{ steps.deployment.outputs.page_url }}semya.html"
           code=$(curl -sL -o /tmp/semya.html -w "%{http_code}" "$URL" || echo 000)
           echo "код $code, $(wc -c < /tmp/semya.html) байт"
-          test "$code" = "200" || { echo "::error::закрытый раздел не отдаётся"; exit 1; }
+          test "$code" = "200" || { echo "::error::прежний файл не отдаётся"; exit 1; }
           grep -q 'id="gate"' /tmp/semya.html || { echo "::error::нет формы входа"; exit 1; }
           if grep -q 'Папе и маме' /tmp/semya.html; then
             echo "::error::в опубликованной странице открытый текст"; exit 1
           fi
-          echo "OK: раздел закрыт, открытого текста нет"
+          echo "OK: прежний файл остался зашифрованным"

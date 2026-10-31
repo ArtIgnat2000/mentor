@@ -134,14 +134,19 @@ workflow «Deploy карманного свода» → *Run workflow*.
 
 ## Семейное приложение-справочник
 
-Новый контур `family/` — справочник «Родители / Дети» без ввода данных:
+Контур `family/` — справочник «Родители / Дети» без ввода данных. На GitHub Pages
+открыты оба раздела, без входа и пароля:
 
-- `family/` — два раздельных приложения: публичное семейное и закрытое родительское.
-- `family/content/parents/metodika-pylesos.md` — первая закрытая родительская методика.
-- Запуск: `python3 -m family.server --family-port 8000 --parents-port 8001`.
-- Открытая версия для телефона: https://artignat2000.github.io/mentor/family/
-- Статическая сборка только семейного контура: `python3 -m family.build_public`.
-- Родительский контур требует серверного входа и не экспортируется на GitHub Pages.
+- **Семья:** https://artignat2000.github.io/mentor/family/
+- **Родителям:** https://artignat2000.github.io/mentor/parents/
+
+В «Родителям» опубликованы правила для папы, правила для мамы и методика
+«Отказ пылесосить» (`family/content/parents/metodika-pylesos.md`). Страницы
+адаптированы для телефона и имеют версию для печати.
+
+- Статическая сборка обоих разделов: `python3 -m family.build_public` → `docs/family/` и `docs/parents/`.
+- Серверный режим с отдельным входом сохранён: `python3 -m family.server --family-port 8000 --parents-port 8001`.
+- Открытая публикация не защищает материалы паролем: всё, что добавлено в индексы этих контуров, доступно по ссылке.
 
 Подробнее: `family/README.md`.
 

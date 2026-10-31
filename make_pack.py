@@ -80,13 +80,19 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k.startsWith('nastavnik-') && k !== CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
 
+const BASE = new URL('./', location);
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  const url = new URL(e.request.url);
+  if (url.origin !== BASE.origin || !url.pathname.startsWith(BASE.pathname)) return;
+  // У семейного и родительского справочников собственные офлайн-кэши.
+  if (url.pathname.startsWith(BASE.pathname + 'family/') ||
+      url.pathname.startsWith(BASE.pathname + 'parents/')) return;
   e.respondWith(
     caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
       const copy = res.clone();
